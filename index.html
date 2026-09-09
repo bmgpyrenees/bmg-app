@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
 <title>BMG — Sorties &amp; Équipement</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,6 +61,13 @@
   .repas-day h5{font-family:'Oswald',sans-serif; font-size:0.92rem; text-transform:uppercase; letter-spacing:0.02em; color:var(--accent2); margin:6px 0 4px;}
   .repas-item{font-size:0.92rem; display:flex; justify-content:space-between; padding:2px 0;}
   select.mini{width:auto; padding:4px 6px; font-size:0.95rem;}
+  @media (max-width: 480px){
+    body{padding:12px; font-size:16px;}
+    h1{font-size:1.3rem;}
+    .grid, .cats, .categories{grid-template-columns:1fr;}
+    .tabs{gap:4px;}
+    .tab{padding:8px 10px; font-size:0.85rem;}
+  }
 </style>
 </head>
 <body>
