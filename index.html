@@ -114,7 +114,7 @@
         <select id="inv_saison"><option value="Chaude">Chaude</option><option value="Froide">Froide</option><option value="Multi">Multi</option></select>
       </div>
       <div><label>Confort</label>
-        <select id="inv_confort"><option value="Sommaire">Sommaire</option><option value="Confortable" selected>Confortable</option><option value="Luxe">Luxe</option></select>
+        <select id="inv_confort"><option value="Sommaire">Sommaire</option><option value="Confortable" selected>Confortable</option><option value="Luxe">Luxe</option><option value="Indispensable">Indispensable</option></select>
       </div>
       <div><label>Poids (g)</label><input type="number" id="inv_poids" min="0"></div>
       <div><button id="inv_submit_btn" onclick="addInvItem()">+ Ajouter</button></div>
@@ -425,6 +425,21 @@ function bySaison(items, saison){
 function lightest(items){ return items.length ? items.reduce((a,b)=> a.poids<=b.poids?a:b) : null; }
 function heaviest(items){ return items.length ? items.reduce((a,b)=> a.poids>=b.poids?a:b) : null; }
 function pick(sc, saison, confort){ if(!sc||!sc.length) return null; return nearestConfort(bySaison(sc, saison), confort); }
+/**
+ * Comme pick(), mais retourne un TABLEAU : l'objet choisi selon le confort visé (Sommaire/Confortable/Luxe),
+ * PLUS tout objet marqué "Indispensable" (toujours inclus, quel que soit le confort demandé).
+ */
+function pickWithIndispensables(sc, saison, confort){
+  if(!sc || !sc.length) return [];
+  const seasonPool = bySaison(sc, saison);
+  const indispensables = seasonPool.filter(i => i.confort === 'Indispensable');
+  const normal = seasonPool.filter(i => i.confort !== 'Indispensable');
+  const result = [];
+  if(normal.length) result.push(nearestConfort(normal, confort));
+  const seenNoms = new Set(result.map(r => r.nom));
+  indispensables.forEach(i => { if(!seenNoms.has(i.nom)){ result.push(i); seenNoms.add(i.nom); } });
+  return result;
+}
 
 /**
  * Calcule le kit d'une personne : poids individuel (hors collectif) + liste des objets collectifs proposés.
@@ -444,19 +459,19 @@ function computeKit(catalog, params){
     const couchage = [];
     if(nuitee === 'Refuge'){
       const duvetPool = bySaison(catalog.couchage['Duvet']||[], saison);
-      const item = lightest(duvetPool);
+      const normalDuvet = duvetPool.filter(i => i.confort !== 'Indispensable');
+      const indispDuvet = duvetPool.filter(i => i.confort === 'Indispensable');
+      const item = lightest(normalDuvet);
       checkEmpty('Duvet', duvetPool);
       if(item){ couchage.push({label:item.nom, poids:item.poids, note:'le plus léger'}); individualWeight += item.poids; }
+      indispDuvet.forEach(d => { couchage.push({label:d.nom, poids:d.poids}); individualWeight += d.poids; });
     } else {
       checkEmpty('Tente', catalog.couchage['Tente']);
       checkEmpty('Matelas', catalog.couchage['Matelas']);
       checkEmpty('Duvet', catalog.couchage['Duvet']);
-      const tente = pick(catalog.couchage['Tente'], saison, confort);
-      if(tente) collectifProposals.push({label:tente.nom, poids:tente.poids, subcat:'Tente'});
-      const matelas = pick(catalog.couchage['Matelas'], saison, confort);
-      if(matelas){ couchage.push({label:matelas.nom, poids:matelas.poids}); individualWeight += matelas.poids; }
-      const duvet = pick(catalog.couchage['Duvet'], saison, confort);
-      if(duvet){ couchage.push({label:duvet.nom, poids:duvet.poids}); individualWeight += duvet.poids; }
+      pickWithIndispensables(catalog.couchage['Tente'], saison, confort).forEach(t => collectifProposals.push({label:t.nom, poids:t.poids, subcat:'Tente'}));
+      pickWithIndispensables(catalog.couchage['Matelas'], saison, confort).forEach(m => { couchage.push({label:m.nom, poids:m.poids}); individualWeight += m.poids; });
+      pickWithIndispensables(catalog.couchage['Duvet'], saison, confort).forEach(d => { couchage.push({label:d.nom, poids:d.poids}); individualWeight += d.poids; });
       couchage.push({label:'Sac étanche / sursac', poids:150, note:'estimé'}); individualWeight += 150;
     }
     if(confort === 'Luxe'){
@@ -469,20 +484,16 @@ function computeKit(catalog, params){
   // Vêtements
   const vet = [];
   checkEmpty('Couche protectrice', catalog.vetements['Couche protectrice']);
-  let it = pick(catalog.vetements['Couche protectrice'], saison, confort);
-  if(it){ vet.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; }
+  pickWithIndispensables(catalog.vetements['Couche protectrice'], saison, confort).forEach(it => { vet.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; });
   checkEmpty('Couche isolante', catalog.vetements['Couche isolante']);
-  it = pick(catalog.vetements['Couche isolante'], saison, confort);
-  if(it){ vet.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; }
+  pickWithIndispensables(catalog.vetements['Couche isolante'], saison, confort).forEach(it => { vet.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; });
   if(saison === 'Froide'){
     bySaison(catalog.vetements['Sous-couche chaude']||[], saison).forEach(i => { vet.push({label:i.nom, poids:i.poids, note:'base layer'}); individualWeight += i.poids; });
   }
   checkEmpty('Couche transpirante', catalog.vetements['Couche transpirante']);
-  it = pick(catalog.vetements['Couche transpirante'], saison, confort);
-  if(it){ vet.push({label:it.nom, poids:it.poids, note: duree>=2 ? '+1 rechange conseillé' : ''}); individualWeight += it.poids; }
+  pickWithIndispensables(catalog.vetements['Couche transpirante'], saison, confort).forEach((it, idx) => { vet.push({label:it.nom, poids:it.poids, note: (idx===0 && duree>=2) ? '+1 rechange conseillé' : ''}); individualWeight += it.poids; });
   checkEmpty('Pantalons et shorts', catalog.vetements['Pantalons et shorts']);
-  it = pick(catalog.vetements['Pantalons et shorts'], saison, confort);
-  if(it){ vet.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; }
+  pickWithIndispensables(catalog.vetements['Pantalons et shorts'], saison, confort).forEach(it => { vet.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; });
   const extremites = bySaison(catalog.vetements['Extrémités']||[], saison);
   const seen = {};
   extremites.forEach(i => {
@@ -508,18 +519,16 @@ function computeKit(catalog, params){
     });
   }
   checkEmpty('Survie', catalog.equipements['Survie']);
-  const survie = pick(catalog.equipements['Survie'], saison, confort);
-  if(survie){ eq.push({label:survie.nom, poids:survie.poids}); individualWeight += survie.poids; }
+  const survieItems = pickWithIndispensables(catalog.equipements['Survie'], saison, confort);
+  survieItems.forEach(s => { eq.push({label:s.nom, poids:s.poids}); individualWeight += s.poids; });
   checkEmpty('Hydratation', catalog.equipements['Hydratation']);
-  const hydra = pick(catalog.equipements['Hydratation'], saison, confort);
-  if(hydra){
+  const hydraItems = pickWithIndispensables(catalog.equipements['Hydratation'], saison, confort);
+  hydraItems.forEach(hydra => {
     eq.push({label:hydra.nom, poids:hydra.poids}); individualWeight += hydra.poids;
     if(duree >= 2 || saison === 'Chaude'){ eq.push({label:hydra.nom, poids:hydra.poids, note:'unité supplémentaire'}); individualWeight += hydra.poids; }
-  }
+  });
   checkEmpty('Hygiène et nuit', catalog.equipements['Hygiène et nuit']);
-  const hyg = bySaison(catalog.equipements['Hygiène et nuit']||[], saison);
-  it = pick(hyg, saison, confort);
-  if(it){ eq.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; }
+  pickWithIndispensables(catalog.equipements['Hygiène et nuit'], saison, confort).forEach(it => { eq.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; });
   checkEmpty('Sac', catalog.equipements['Sac']);
   const sacPool = bySaison(catalog.equipements['Sac']||[], saison);
   const sac = (isCourse || nuitee === 'Journée') ? lightest(sacPool) : heaviest(sacPool);
