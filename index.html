@@ -81,8 +81,9 @@
 <div id="app" style="display:none;">
 
 <div class="tabs">
-  <div class="tab active" data-tab="inventaire" onclick="switchTab('inventaire')">🗄️ Mon inventaire</div>
-  <div class="tab" data-tab="sorties" onclick="switchTab('sorties')">🥾 Sorties</div>
+  <div class="tab active" data-tab="ajouter" onclick="switchTab('ajouter')">➕ Ajouter du matériel</div>
+  <div class="tab" data-tab="inventaire" onclick="switchTab('inventaire')">🗄️ Mon inventaire</div>
+  <div class="tab" data-tab="sorties" onclick="switchTab('sorties')">🥾 Sorties de groupe</div>
 </div>
 
 <!-- ===================== IDENTITÉ ===================== -->
@@ -96,8 +97,8 @@
   </div>
 </div>
 
-<!-- ===================== ONGLET INVENTAIRE ===================== -->
-<div class="screen active" id="screen-inventaire">
+<!-- ===================== ONGLET AJOUTER DU MATÉRIEL ===================== -->
+<div class="screen active" id="screen-ajouter">
   <div class="panel">
     <div class="grid" style="margin-bottom:14px;">
       <div>
@@ -119,10 +120,18 @@
       <div><label>Poids (g)</label><input type="number" id="inv_poids" min="0"></div>
       <div><button id="inv_submit_btn" onclick="addInvItem()">+ Ajouter</button></div>
       <div><button id="inv_cancel_btn" class="secondary" onclick="cancelEditInv()" style="display:none;">Annuler</button></div>
-      <div><button class="secondary" onclick="loadInventaire()">🔄 Actualiser</button></div>
+    </div>
+    <div class="status" id="inv_status"></div>
+  </div>
+</div>
+
+<!-- ===================== ONGLET MON INVENTAIRE ===================== -->
+<div class="screen" id="screen-inventaire">
+  <div class="panel">
+    <div class="btnrow">
+      <button class="secondary" onclick="loadInventaire()">🔄 Actualiser</button>
     </div>
     <div id="inv_list" class="cats"></div>
-    <div class="status" id="inv_status"></div>
   </div>
 
 
@@ -188,6 +197,8 @@
   <div id="recap-list"></div>
 </div>
 
+</div>
+<!-- fermeture de #app -->
 </div>
 
 <script>
@@ -264,9 +275,11 @@ function showIdentityPanel(){
 
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('screen-ajouter').classList.toggle('active', tab === 'ajouter');
   document.getElementById('screen-inventaire').classList.toggle('active', tab === 'inventaire');
   document.getElementById('screen-sorties').classList.toggle('active', tab === 'sorties');
   document.getElementById('screen-detail').classList.remove('active');
+  if(tab === 'inventaire') loadInventaire();
   if(tab === 'sorties') loadSorties();
 }
 
@@ -323,6 +336,7 @@ let editTarget = null; // {cat, sub, nom, poids} de l'item en cours d'édition, 
 
 function editInvItem(cat, sub, nom, saison, confort, poids){
   editTarget = {cat, sub, nom, poids};
+  switchTab('ajouter');
   document.getElementById('inv_cat').value = cat;
   updateSubcatOptions();
   document.getElementById('inv_subcat').value = sub;
@@ -332,7 +346,6 @@ function editInvItem(cat, sub, nom, saison, confort, poids){
   document.getElementById('inv_poids').value = poids;
   document.getElementById('inv_submit_btn').textContent = '💾 Enregistrer les modifications';
   document.getElementById('inv_cancel_btn').style.display = 'inline-block';
-  document.getElementById('inv_nom').scrollIntoView({behavior:'smooth', block:'center'});
 }
 function cancelEditInv(){
   editTarget = null;
@@ -354,8 +367,11 @@ async function addInvItem(){
     await apiPost('inventaire_delete', {pseudo: currentUser, categorie: editTarget.cat, sous_categorie: editTarget.sub, nom: editTarget.nom, poids_g: editTarget.poids});
   }
   await apiPost('inventaire_add', {pseudo: currentUser, categorie: cat, sous_categorie: sub, nom, saison, confort, poids_g: poids});
+  const wasEditing = !!editTarget;
   cancelEditInv();
-  loadInventaire();
+  document.getElementById('inv_nom').value = '';
+  document.getElementById('inv_poids').value = '';
+  if(wasEditing){ switchTab('inventaire'); } else { loadInventaire(); }
 }
 async function delInvItem(cat, sub, nom, poids){
   await apiPost('inventaire_delete', {pseudo: currentUser, categorie: cat, sous_categorie: sub, nom, poids_g: poids});
