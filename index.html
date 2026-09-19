@@ -24,8 +24,7 @@
   .tabs{display:flex; gap:24px; margin-bottom:24px; flex-wrap:wrap;}
   .tab{padding:4px 0; cursor:pointer; color:var(--muted); font-size:0.95rem;}
   .tab.active{color:var(--text); font-weight:600;}
-  .screen{display:none;}
-  .screen.active{display:block;}
+  /* affichage des écrans géré nativement via l'attribut HTML "hidden" (plus robuste qu'une classe CSS) */
   .panel{background:var(--panel); border-radius:10px; padding:18px; margin-bottom:20px;}
   label{display:block; font-size:0.85rem; color:var(--muted); margin-bottom:4px;}
   select, input[type=number], input[type=text], input[type=date]{width:100%; padding:9px; border-radius:6px; border:none; border-bottom:1px solid var(--border); background:transparent; color:var(--text); font-family:'Inter',Arial,sans-serif; font-size:1rem;}
@@ -97,7 +96,7 @@
 </div>
 
 <!-- ===================== ONGLET AJOUTER DU MATÉRIEL ===================== -->
-<div class="screen active" id="screen-ajouter">
+<div class="screen" id="screen-ajouter">
   <div class="panel">
     <div class="grid" style="margin-bottom:14px;">
       <div>
@@ -125,7 +124,7 @@
 </div>
 
 <!-- ===================== ONGLET MON INVENTAIRE ===================== -->
-<div class="screen" id="screen-inventaire">
+<div class="screen" id="screen-inventaire" hidden>
   <div class="panel">
     <div class="btnrow">
       <button class="secondary" onclick="loadInventaire()">🔄 Actualiser</button>
@@ -135,8 +134,7 @@
 
 
 <!-- ===================== ONGLET SORTIES ===================== -->
-<div class="screen" id="ecran-planning">
-  <p style="background:red; color:white; font-size:24px; padding:20px;">TEST VISIBLE — si tu vois ce texte rouge, le conteneur fonctionne.</p>
+<div class="screen" id="ecran-planning" hidden>
   <div class="panel" id="sorties-list-panel">
     <h3>Créer une sortie</h3>
     <div class="grid" style="margin-bottom:10px;">
@@ -162,7 +160,7 @@
 </div>
 
 <!-- ===================== DÉTAIL SORTIE ===================== -->
-<div class="screen" id="screen-detail">
+<div class="screen" id="screen-detail" hidden>
   <button class="secondary" onclick="switchTab('sorties')">&larr; Retour aux sorties</button>
   <button class="secondary" onclick="computeAllKits()">🔄 Actualiser</button>
   <div class="panel" id="detail-header"></div>
@@ -275,10 +273,10 @@ function showIdentityPanel(){
 
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  document.getElementById('screen-ajouter').classList.toggle('active', tab === 'ajouter');
-  document.getElementById('screen-inventaire').classList.toggle('active', tab === 'inventaire');
-  document.getElementById('ecran-planning').classList.toggle('active', tab === 'sorties');
-  document.getElementById('screen-detail').classList.remove('active');
+  document.getElementById('screen-ajouter').hidden = (tab !== 'ajouter');
+  document.getElementById('screen-inventaire').hidden = (tab !== 'inventaire');
+  document.getElementById('ecran-planning').hidden = (tab !== 'sorties');
+  document.getElementById('screen-detail').hidden = true;
   if(tab === 'inventaire') loadInventaire();
   if(tab === 'sorties') loadSorties();
 }
@@ -591,8 +589,8 @@ async function openSortie(id){
   currentSortie = sortiesCache.find(s => String(s.sortie_id) === String(id));
   currentSortieId = id;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-detail').classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.hidden = true);
+  document.getElementById('screen-detail').hidden = false;
 
   document.getElementById('detail-header').innerHTML = `<h3>${currentSortie.titre}</h3>
     <div class="sortie-meta">${currentSortie.type_activite} · ${currentSortie.mode_nuitee} · ${currentSortie.terrain} · ${currentSortie.saison} · Difficulté ${currentSortie.difficulte} · ${currentSortie.duree_jours}j</div>`;
