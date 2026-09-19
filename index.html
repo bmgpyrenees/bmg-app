@@ -135,7 +135,7 @@
 
 
 <!-- ===================== ONGLET SORTIES ===================== -->
-<div class="screen" id="screen-sorties">
+<div class="screen" id="ecran-planning">
   <div class="panel" id="sorties-list-panel">
     <h3>Créer une sortie</h3>
     <div class="grid" style="margin-bottom:10px;">
@@ -276,7 +276,7 @@ function switchTab(tab){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.getElementById('screen-ajouter').classList.toggle('active', tab === 'ajouter');
   document.getElementById('screen-inventaire').classList.toggle('active', tab === 'inventaire');
-  document.getElementById('screen-sorties').classList.toggle('active', tab === 'sorties');
+  document.getElementById('ecran-planning').classList.toggle('active', tab === 'sorties');
   document.getElementById('screen-detail').classList.remove('active');
   if(tab === 'inventaire') loadInventaire();
   if(tab === 'sorties') loadSorties();
