@@ -17,14 +17,13 @@
   body{margin:0; font-family:'Inter',Arial,sans-serif; font-weight:400; background:var(--bg); color:var(--text); padding:20px; font-size:17px;}
   h1,h2,h3,h4,h5{font-family:'Stack Sans Headline',sans-serif; font-weight:300; letter-spacing:0.01em; margin:0 0 10px;}
   h1{font-size:1.7rem;}
-  h2{font-size:1.25rem; margin-top:28px;}
+  h2{font-size:1.25rem; margin-top:0;}
   h3{font-size:1.1rem;}
   h4{font-size:1rem;}
   .sub{color:var(--muted); font-size:1rem; margin-bottom:20px;}
-  .tabs{display:flex; gap:24px; margin-bottom:24px; flex-wrap:wrap;}
-  .tab{padding:4px 0; cursor:pointer; color:var(--muted); font-size:0.95rem;}
-  .tab.active{color:var(--text); font-weight:600;}
-  /* affichage des écrans géré nativement via l'attribut HTML "hidden" (plus robuste qu'une classe CSS) */
+  .nav{display:flex; gap:24px; margin-bottom:24px; flex-wrap:wrap;}
+  .navbtn{padding:4px 0; cursor:pointer; color:var(--muted); font-size:1.05rem; background:none; border:none; font-family:'Inter',Arial,sans-serif;}
+  .navbtn.active{color:var(--text); font-weight:600;}
   .panel{background:var(--panel); border-radius:10px; padding:18px; margin-bottom:20px;}
   label{display:block; font-size:0.85rem; color:var(--muted); margin-bottom:4px;}
   select, input[type=number], input[type=text], input[type=date]{width:100%; padding:9px; border-radius:6px; border:none; border-bottom:1px solid var(--border); background:transparent; color:var(--text); font-family:'Inter',Arial,sans-serif; font-size:1rem;}
@@ -63,44 +62,128 @@
   @media (max-width: 480px){
     body{padding:14px; font-size:16px;}
     h1{font-size:1.4rem;}
-    .grid, .cats, .categories{grid-template-columns:1fr;}
-    .tabs{gap:14px;}
+    .grid, .cats{grid-template-columns:1fr;}
+    .nav{gap:14px;}
   }
 </style>
 </head>
 <body>
 
-<h1>🏔️ BMG — Sorties &amp; Équipement</h1>
+<h1>🎒 BMG — Sorties &amp; Équipement</h1>
 <div class="sub" id="whoami-status">Chargement...</div>
-<div class="sub" id="switch-user-row" style="display:none; font-size:1.1rem;">
+<div class="sub" id="switch-user-row" style="display:none;">
   <span id="current-user-label" style="font-weight:600;"></span> — <a href="#" onclick="showIdentityPanel(); return false;" style="color:var(--accent);">changer d'identité</a>
 </div>
 
 <div id="app" style="display:none;">
 
-<div class="tabs">
-  <div class="tab active" data-tab="ajouter" onclick="switchTab('ajouter')">➕ Ajouter du matériel</div>
-  <div class="tab" data-tab="inventaire" onclick="switchTab('inventaire')">🗄️ Mon inventaire</div>
-  <div class="tab" data-tab="sorties" onclick="switchTab('sorties')">🥾 Sorties de groupe</div>
-</div>
-
-<!-- ===================== IDENTITÉ ===================== -->
 <div class="panel" id="identity-panel">
   <div class="grid">
-    <div>
-      <label>Qui es-tu ?</label>
-      <select id="who-select"></select>
-    </div>
+    <div><label>Qui es-tu ?</label><select id="who-select"></select></div>
     <div><button onclick="setIdentity()">Valider</button></div>
   </div>
 </div>
 
-<!-- ===================== ONGLET AJOUTER DU MATÉRIEL ===================== -->
-<div class="screen" id="screen-ajouter">
+<div class="nav">
+  <button class="navbtn active" data-view="equipement" onclick="setView('equipement')">🎒 Mon équipement</button>
+  <button class="navbtn" data-view="sorties" onclick="setView('sorties')">🥾 Sorties</button>
+</div>
+
+<div id="content"></div>
+
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbwJ2LjB2yPjuYXj6J4Hw9i4VOFTgqNavBUI-eZlNErN7J6uspReUCfxo2h2z-4wQxwD/exec';
+const SUBCATS = {
+  couchage: ['Tente','Matelas','Duvet','Bonus'],
+  vetements: ['Couche protectrice','Couche isolante','Sous-couche chaude','Couche transpirante','Pantalons et shorts','Extrémités'],
+  equipements: ['Cuisine','Survie','Hydratation','Hygiène et nuit','Sac']
+};
+const TECH_POIDS = {
+  'Crampons (paire)': 900, 'Piolet': 450, 'Piolet ou bâtons renforcés': 500,
+  'Casque alpi': 350, 'Baudrier': 400,
+  "Corde d'encordement (partagée, ~60m/9mm)": 2000, 'Broches à glace (kit)': 300,
+  'DVA': 200, 'Pelle à neige': 500, 'Sonde avalanche': 250,
+  'Raquettes à neige (paire)': 1800, 'Bâtons (paire)': 500, 'Guêtres': 250,
+  'Casque vélo': 250, 'Kit de réparation / crevaison': 400,
+  'Matériel pêche / vêtements étanches': 800, 'GPS (si pas de smartphone fiable)': 150,
+};
+const TECH_COLLECTIF = ["Corde d'encordement (partagée, ~60m/9mm)", 'Broches à glace (kit)'];
+
+let currentUser = null;
+let membresCache = [];
+let sortiesCache = [];
+let currentView = 'equipement';
+let currentSortieId = null;
+let currentSortie = null;
+let kitCache = {};
+let editTarget = null;
+
+// ================= API =================
+async function apiGet(action, params){
+  params = params || {};
+  const qs = Object.entries(params).map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  const url = `${API_URL}?action=${action}${qs ? '&'+qs : ''}&_ts=${Date.now()}`;
+  const res = await fetch(url, {cache:'no-store'});
+  return await res.json();
+}
+async function apiPost(action, body){
+  body = body || {};
+  const res = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action, ...body})});
+  return await res.json();
+}
+
+// ================= Boot =================
+async function boot(){
+  try{ membresCache = await apiGet('membres'); }
+  catch(e){ document.getElementById('whoami-status').textContent = 'Impossible de contacter le backend.'; return; }
+  document.getElementById('who-select').innerHTML = membresCache.map(m => `<option value="${m.pseudo}">${m.pseudo}</option>`).join('');
+  document.getElementById('whoami-status').textContent = 'Connecté à la base BMG.';
+  document.getElementById('app').style.display = 'block';
+}
+function setIdentity(){
+  currentUser = document.getElementById('who-select').value;
+  document.getElementById('identity-panel').style.display = 'none';
+  document.getElementById('whoami-status').textContent = '';
+  document.getElementById('switch-user-row').style.display = 'block';
+  document.getElementById('current-user-label').textContent = 'Connecté comme ' + currentUser;
+  render();
+}
+function showIdentityPanel(){
+  document.getElementById('who-select').value = currentUser;
+  document.getElementById('identity-panel').style.display = 'block';
+}
+function setView(view){
+  currentView = view;
+  currentSortieId = null;
+  document.querySelectorAll('.navbtn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  render();
+}
+
+// ================= Rendu principal =================
+function render(){
+  const content = document.getElementById('content');
+  if(currentView === 'equipement'){
+    content.innerHTML = renderEquipementScreen();
+    updateSubcatOptions();
+    loadInventaire();
+  } else if(currentView === 'sorties' && !currentSortieId){
+    content.innerHTML = renderSortiesListScreen();
+    loadSorties();
+  } else if(currentView === 'sorties' && currentSortieId){
+    content.innerHTML = renderSortieDetailScreen();
+    openSortieData();
+  }
+}
+
+// ================= ÉCRAN ÉQUIPEMENT =================
+function renderEquipementScreen(){
+  return `
   <div class="panel">
+    <h3>Ajouter / modifier un objet</h3>
     <div class="grid" style="margin-bottom:14px;">
-      <div>
-        <label>Catégorie</label>
+      <div><label>Catégorie</label>
         <select id="inv_cat" onchange="updateSubcatOptions()">
           <option value="couchage">Couchage</option>
           <option value="vetements">Vêtements</option>
@@ -121,21 +204,108 @@
     </div>
     <div class="status" id="inv_status"></div>
   </div>
-</div>
-
-<!-- ===================== ONGLET MON INVENTAIRE ===================== -->
-<div class="screen" id="screen-inventaire" hidden>
   <div class="panel">
-    <div class="btnrow">
-      <button class="secondary" onclick="loadInventaire()">🔄 Actualiser</button>
-    </div>
+    <div class="btnrow"><h3 style="margin:0;">Mon inventaire</h3><button class="secondary small" onclick="loadInventaire()">🔄 Actualiser</button></div>
     <div id="inv_list" class="cats"></div>
-  </div>
+  </div>`;
+}
 
+function updateSubcatOptions(){
+  const sel = document.getElementById('inv_cat');
+  if(!sel) return;
+  const cat = sel.value;
+  document.getElementById('inv_subcat').innerHTML = SUBCATS[cat].map(s => `<option value="${s}">${s}</option>`).join('');
+}
 
-<!-- ===================== ONGLET SORTIES ===================== -->
-<div class="screen" id="ecran-planning" hidden>
-  <div class="panel" id="sorties-list-panel">
+function catalogFromItems(items){
+  const cat = {couchage:{}, vetements:{}, equipements:{}};
+  for(const c of Object.keys(SUBCATS)) for(const s of SUBCATS[c]) cat[c][s] = [];
+  items.forEach(it => {
+    if(cat[it.categorie] && cat[it.categorie][it.sous_categorie]){
+      cat[it.categorie][it.sous_categorie].push({nom: it.nom, saison: it.saison, confort: it.confort, poids: Number(it.poids_g)});
+    }
+  });
+  return cat;
+}
+
+async function loadInventaire(){
+  if(!currentUser || currentView !== 'equipement') return;
+  const items = await apiGet('inventaire', {pseudo: currentUser});
+  renderInventaireList(items);
+}
+function renderInventaireList(items){
+  const catalog = catalogFromItems(items);
+  const container = document.getElementById('inv_list');
+  if(!container) return;
+  container.innerHTML = '';
+  const labels = {couchage:'🏕️ Couchage', vetements:'👕 Vêtements', equipements:'🎒 Équipements'};
+  for(const cat of Object.keys(SUBCATS)){
+    const div = document.createElement('div');
+    div.className = 'cat';
+    let html = `<h4>${labels[cat]}</h4>`;
+    for(const sub of SUBCATS[cat]){
+      const arr = catalog[cat][sub];
+      html += `<div class="subcat-label">${sub}</div>`;
+      if(!arr.length) html += `<div class="empty">— vide —</div>`;
+      else arr.forEach(it => {
+        const nomEsc = it.nom.replace(/'/g,"\\'");
+        html += `<div class="item-row"><span>${it.nom} (${it.saison}, ${it.confort}, ${it.poids}g)</span>
+          <span>
+            <span style="color:var(--accent); cursor:pointer; margin-right:8px;" onclick="editInvItem('${cat}','${sub}','${nomEsc}','${it.saison}','${it.confort}',${it.poids})">✎</span>
+            <span style="color:var(--danger); cursor:pointer;" onclick="delInvItem('${cat}','${sub}','${nomEsc}',${it.poids})">✕</span>
+          </span></div>`;
+      });
+    }
+    div.innerHTML = html;
+    container.appendChild(div);
+  }
+  const statusEl = document.getElementById('inv_status');
+  if(statusEl) statusEl.textContent = items.length + ' objet(s) dans ton inventaire.';
+}
+
+function editInvItem(cat, sub, nom, saison, confort, poids){
+  editTarget = {cat, sub, nom, poids};
+  document.getElementById('inv_cat').value = cat;
+  updateSubcatOptions();
+  document.getElementById('inv_subcat').value = sub;
+  document.getElementById('inv_nom').value = nom;
+  document.getElementById('inv_saison').value = saison;
+  document.getElementById('inv_confort').value = confort;
+  document.getElementById('inv_poids').value = poids;
+  document.getElementById('inv_submit_btn').textContent = '💾 Enregistrer';
+  document.getElementById('inv_cancel_btn').style.display = 'inline-block';
+}
+function cancelEditInv(){
+  editTarget = null;
+  document.getElementById('inv_nom').value = '';
+  document.getElementById('inv_poids').value = '';
+  document.getElementById('inv_submit_btn').textContent = '+ Ajouter';
+  document.getElementById('inv_cancel_btn').style.display = 'none';
+}
+async function addInvItem(){
+  const cat = document.getElementById('inv_cat').value;
+  const sub = document.getElementById('inv_subcat').value;
+  const nom = document.getElementById('inv_nom').value.trim();
+  const saison = document.getElementById('inv_saison').value;
+  const confort = document.getElementById('inv_confort').value;
+  const poids = parseInt(document.getElementById('inv_poids').value);
+  if(!nom || !poids) return;
+  if(editTarget){
+    await apiPost('inventaire_delete', {pseudo: currentUser, categorie: editTarget.cat, sous_categorie: editTarget.sub, nom: editTarget.nom, poids_g: editTarget.poids});
+  }
+  await apiPost('inventaire_add', {pseudo: currentUser, categorie: cat, sous_categorie: sub, nom, saison, confort, poids_g: poids});
+  cancelEditInv();
+  loadInventaire();
+}
+async function delInvItem(cat, sub, nom, poids){
+  await apiPost('inventaire_delete', {pseudo: currentUser, categorie: cat, sous_categorie: sub, nom, poids_g: poids});
+  loadInventaire();
+}
+
+// ================= ÉCRAN LISTE DES SORTIES =================
+function renderSortiesListScreen(){
+  return `
+  <div class="panel">
     <h3>Créer une sortie</h3>
     <div class="grid" style="margin-bottom:10px;">
       <div><label>Titre</label><input type="text" id="s_titre"></div>
@@ -155,237 +325,20 @@
       <div><button onclick="createSortie()">+ Créer la sortie</button></div>
     </div>
   </div>
-  <h3>Sorties existantes <button class="secondary small" onclick="loadSorties()" style="margin-left:8px;">🔄 Actualiser</button></h3>
-  <div id="sorties-cards"></div>
-</div>
-
-<!-- ===================== DÉTAIL SORTIE ===================== -->
-<div class="screen" id="screen-detail" hidden>
-  <button class="secondary" onclick="switchTab('sorties')">&larr; Retour aux sorties</button>
-  <button class="secondary" onclick="computeAllKits()">🔄 Actualiser</button>
-  <div class="panel" id="detail-header"></div>
-
-  <div class="panel">
-    <h3>Participants</h3>
-    <div class="participants-list" id="participants-list"></div>
-  </div>
-
-  <div class="panel">
-    <div class="btnrow"><h3 style="margin:0;">Matériel collectif</h3><button class="small" onclick="autoAssign()">↻ Réassigner automatiquement</button></div>
-    <div id="collectif-list"></div>
-  </div>
-
-  <div class="panel">
-    <h3>Repas prévus</h3>
-    <div class="grid" style="margin-bottom:10px;">
-      <div><label>Jour</label><input type="number" id="r_jour" value="1" min="1"></div>
-      <div><label>Moment</label><select id="r_moment"><option>Petit-déj</option><option>Midi</option><option>Soir</option></select></div>
-      <div><label>Plat</label><input type="text" id="r_plat" placeholder="ex: Poulet rôti"></div>
-      <div><label>Responsable</label><input type="text" id="r_resp"></div>
-      <div><label>Portions</label><input type="number" id="r_portions" value="1" min="1"></div>
-      <div><button onclick="addRepas()">+ Ajouter</button></div>
-    </div>
-    <div id="repas-list"></div>
-  </div>
-
-  <div class="panel">
-    <div class="weightbar" id="detail-weightbar"></div>
-  </div>
-  <h3>Fiche par personne</h3>
-  <div id="recap-list"></div>
-</div>
-
-</div>
-<!-- fermeture de #app -->
-</div>
-
-<script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbwJ2LjB2yPjuYXj6J4Hw9i4VOFTgqNavBUI-eZlNErN7J6uspReUCfxo2h2z-4wQxwD/exec';
-const SUBCATS = {
-  couchage: ['Tente','Matelas','Duvet','Bonus'],
-  vetements: ['Couche protectrice','Couche isolante','Sous-couche chaude','Couche transpirante','Pantalons et shorts','Extrémités'],
-  equipements: ['Cuisine','Survie','Hydratation','Hygiène et nuit','Sac']
-};
-const COLLECTIF_SUBCATS = ['Tente','Cuisine'];
-const TECH_POIDS = {
-  'Crampons (paire)': 900, 'Piolet': 450, 'Piolet ou bâtons renforcés': 500,
-  'Casque alpi': 350, 'Baudrier': 400,
-  "Corde d'encordement (partagée, ~60m/9mm)": 2000, 'Broches à glace (kit)': 300,
-  'DVA': 200, 'Pelle à neige': 500, 'Sonde avalanche': 250,
-  'Raquettes à neige (paire)': 1800, 'Bâtons (paire)': 500, 'Guêtres': 250,
-  'Casque vélo': 250, 'Kit de réparation / crevaison': 400,
-  'Matériel pêche / vêtements étanches': 800, 'GPS (si pas de smartphone fiable)': 150,
-};
-const TECH_COLLECTIF = ["Corde d'encordement (partagée, ~60m/9mm)", 'Broches à glace (kit)'];
-
-let currentUser = null;
-let membresCache = [];
-let sortiesCache = [];
-let currentSortieId = null;
-let currentSortie = null;
-let personalInventory = {}; // pseudo -> catalog structure
-let kitCache = {}; // pseudo -> computed kit result
-
-// ---------------- API helpers ----------------
-async function apiGet(action, params){
-  params = params || {};
-  const qs = Object.entries(params).map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&');
-  const url = `${API_URL}?action=${action}${qs ? '&'+qs : ''}&_ts=${Date.now()}`;
-  const res = await fetch(url, {cache: 'no-store'});
-  return await res.json();
-}
-async function apiPost(action, body){
-  body = body || {};
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'text/plain;charset=utf-8'},
-    body: JSON.stringify({action, ...body})
-  });
-  return await res.json();
+  <div class="btnrow"><h3 style="margin:0;">Sorties existantes</h3><button class="secondary small" onclick="loadSorties()">🔄 Actualiser</button></div>
+  <div id="sorties-cards"></div>`;
 }
 
-// ---------------- Boot ----------------
-async function boot(){
-  try{
-    membresCache = await apiGet('membres');
-  } catch(e){
-    document.getElementById('whoami-status').textContent = 'Impossible de contacter le backend. Vérifie le déploiement Apps Script.';
-    return;
-  }
-  const sel = document.getElementById('who-select');
-  sel.innerHTML = membresCache.map(m => `<option value="${m.pseudo}">${m.pseudo}</option>`).join('');
-  document.getElementById('whoami-status').textContent = 'Connecté à la base BMG.';
-  document.getElementById('app').style.display = 'block';
-}
-function setIdentity(){
-  currentUser = document.getElementById('who-select').value;
-  document.getElementById('identity-panel').style.display = 'none';
-  document.getElementById('whoami-status').textContent = '';
-  document.getElementById('switch-user-row').style.display = 'block';
-  document.getElementById('current-user-label').textContent = 'Connecté comme ' + currentUser;
-  loadInventaire();
-  loadSorties();
-}
-function showIdentityPanel(){
-  document.getElementById('who-select').value = currentUser;
-  document.getElementById('identity-panel').style.display = 'block';
-}
-
-function switchTab(tab){
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  document.getElementById('screen-ajouter').hidden = (tab !== 'ajouter');
-  document.getElementById('screen-inventaire').hidden = (tab !== 'inventaire');
-  document.getElementById('ecran-planning').hidden = (tab !== 'sorties');
-  document.getElementById('screen-detail').hidden = true;
-  if(tab === 'inventaire') loadInventaire();
-  if(tab === 'sorties') loadSorties();
-}
-
-// ---------------- Inventaire ----------------
-function updateSubcatOptions(){
-  const cat = document.getElementById('inv_cat').value;
-  document.getElementById('inv_subcat').innerHTML = SUBCATS[cat].map(s => `<option value="${s}">${s}</option>`).join('');
-}
-async function loadInventaire(){
-  if(!currentUser) return;
-  const items = await apiGet('inventaire', {pseudo: currentUser});
-  renderInventaireUI(items);
-}
-function catalogFromItems(items){
-  const cat = {couchage:{}, vetements:{}, equipements:{}};
-  for(const c of Object.keys(SUBCATS)) for(const s of SUBCATS[c]) cat[c][s] = [];
-  items.forEach(it => {
-    if(cat[it.categorie] && cat[it.categorie][it.sous_categorie]){
-      cat[it.categorie][it.sous_categorie].push({nom: it.nom, saison: it.saison, confort: it.confort, poids: Number(it.poids_g)});
-    }
-  });
-  return cat;
-}
-function renderInventaireUI(items){
-  updateSubcatOptions();
-  const catalog = catalogFromItems(items);
-  const container = document.getElementById('inv_list');
-  container.innerHTML = '';
-  const labels = {couchage:'🏕️ Couchage', vetements:'👕 Vêtements', equipements:'🎒 Équipements'};
-  for(const cat of Object.keys(SUBCATS)){
-    const div = document.createElement('div');
-    div.className = 'cat';
-    let html = `<h4>${labels[cat]}</h4>`;
-    for(const sub of SUBCATS[cat]){
-      const arr = catalog[cat][sub];
-      html += `<div class="subcat-label">${sub}</div>`;
-      if(!arr.length) html += `<div class="empty" style="padding:2px 0;">— vide —</div>`;
-      else arr.forEach(it => {
-        const nomEsc = it.nom.replace(/'/g,"\\'");
-        html += `<div class="item-row"><span>${it.nom} (${it.saison}, ${it.confort}, ${it.poids}g)</span>
-          <span>
-            <span style="color:var(--accent); cursor:pointer; margin-right:8px;" onclick="editInvItem('${cat}','${sub}','${nomEsc}','${it.saison}','${it.confort}',${it.poids})">✎</span>
-            <span style="color:var(--danger); cursor:pointer;" onclick="delInvItem('${cat}','${sub}','${nomEsc}',${it.poids})">✕</span>
-          </span></div>`;
-      });
-    }
-    div.innerHTML = html;
-    container.appendChild(div);
-  }
-  document.getElementById('inv_status').textContent = items.length + ' objet(s) dans ton inventaire.';
-}
-
-let editTarget = null; // {cat, sub, nom, poids} de l'item en cours d'édition, ou null si mode ajout
-
-function editInvItem(cat, sub, nom, saison, confort, poids){
-  editTarget = {cat, sub, nom, poids};
-  switchTab('ajouter');
-  document.getElementById('inv_cat').value = cat;
-  updateSubcatOptions();
-  document.getElementById('inv_subcat').value = sub;
-  document.getElementById('inv_nom').value = nom;
-  document.getElementById('inv_saison').value = saison;
-  document.getElementById('inv_confort').value = confort;
-  document.getElementById('inv_poids').value = poids;
-  document.getElementById('inv_submit_btn').textContent = '💾 Enregistrer les modifications';
-  document.getElementById('inv_cancel_btn').style.display = 'inline-block';
-}
-function cancelEditInv(){
-  editTarget = null;
-  document.getElementById('inv_nom').value = '';
-  document.getElementById('inv_poids').value = '';
-  document.getElementById('inv_submit_btn').textContent = '+ Ajouter';
-  document.getElementById('inv_cancel_btn').style.display = 'none';
-}
-async function addInvItem(){
-  const cat = document.getElementById('inv_cat').value;
-  const sub = document.getElementById('inv_subcat').value;
-  const nom = document.getElementById('inv_nom').value.trim();
-  const saison = document.getElementById('inv_saison').value;
-  const confort = document.getElementById('inv_confort').value;
-  const poids = parseInt(document.getElementById('inv_poids').value);
-  if(!nom || !poids) return;
-  if(editTarget){
-    // Édition : supprime l'ancienne ligne puis recrée avec les nouvelles valeurs
-    await apiPost('inventaire_delete', {pseudo: currentUser, categorie: editTarget.cat, sous_categorie: editTarget.sub, nom: editTarget.nom, poids_g: editTarget.poids});
-  }
-  await apiPost('inventaire_add', {pseudo: currentUser, categorie: cat, sous_categorie: sub, nom, saison, confort, poids_g: poids});
-  const wasEditing = !!editTarget;
-  cancelEditInv();
-  document.getElementById('inv_nom').value = '';
-  document.getElementById('inv_poids').value = '';
-  if(wasEditing){ switchTab('inventaire'); } else { loadInventaire(); }
-}
-async function delInvItem(cat, sub, nom, poids){
-  await apiPost('inventaire_delete', {pseudo: currentUser, categorie: cat, sous_categorie: sub, nom, poids_g: poids});
-  loadInventaire();
-}
-
-// ---------------- Sorties ----------------
 async function loadSorties(){
   sortiesCache = await apiGet('sorties');
   const container = document.getElementById('sorties-cards');
+  if(!container) return;
   container.innerHTML = '';
   if(!sortiesCache.length){ container.innerHTML = '<div class="empty">Aucune sortie enregistrée.</div>'; return; }
   sortiesCache.forEach(s => {
     const div = document.createElement('div');
     div.className = 'sortie-card';
-    div.onclick = () => openSortie(s.sortie_id);
+    div.onclick = () => { currentSortieId = s.sortie_id; currentSortie = s; render(); };
     div.innerHTML = `<h4>${s.titre}</h4><div class="sortie-meta">${s.type_activite} · ${s.mode_nuitee} · ${s.terrain} · ${s.saison} · Difficulté ${s.difficulte} · ${s.duree_jours}j · ${s.date || 'date libre'}</div>`;
     container.appendChild(div);
   });
@@ -403,11 +356,67 @@ async function createSortie(){
   };
   if(!body.titre) return;
   await apiPost('sortie_add', body);
-  document.getElementById('s_titre').value = '';
   loadSorties();
 }
 
-// ---------------- Moteur de sélection (générique par inventaire) ----------------
+// ================= ÉCRAN DÉTAIL SORTIE =================
+function renderSortieDetailScreen(){
+  return `
+  <button class="secondary" onclick="currentSortieId=null; render();">&larr; Retour aux sorties</button>
+  <div class="panel" id="detail-header"></div>
+  <div class="panel">
+    <h3>Participants</h3>
+    <div class="participants-list" id="participants-list"></div>
+  </div>
+  <div class="panel">
+    <div class="btnrow"><h3 style="margin:0;">Matériel collectif</h3><button class="small" onclick="autoAssign()">↻ Réassigner automatiquement</button></div>
+    <div id="collectif-list"></div>
+  </div>
+  <div class="panel">
+    <h3>Repas prévus</h3>
+    <div class="grid" style="margin-bottom:10px;">
+      <div><label>Jour</label><input type="number" id="r_jour" value="1" min="1"></div>
+      <div><label>Moment</label><select id="r_moment"><option>Petit-déj</option><option>Midi</option><option>Soir</option></select></div>
+      <div><label>Plat</label><input type="text" id="r_plat" placeholder="ex: Poulet rôti"></div>
+      <div><label>Responsable</label><input type="text" id="r_resp"></div>
+      <div><label>Portions</label><input type="number" id="r_portions" value="1" min="1"></div>
+      <div><button onclick="addRepas()">+ Ajouter</button></div>
+    </div>
+    <div id="repas-list"></div>
+  </div>
+  <div class="panel"><div class="weightbar" id="detail-weightbar"></div></div>
+  <h3>Fiche par personne</h3>
+  <div id="recap-list"></div>`;
+}
+
+async function openSortieData(){
+  currentSortie = sortiesCache.find(s => String(s.sortie_id) === String(currentSortieId)) || currentSortie;
+  document.getElementById('detail-header').innerHTML = `<h3>${currentSortie.titre}</h3>
+    <div class="sortie-meta">${currentSortie.type_activite} · ${currentSortie.mode_nuitee} · ${currentSortie.terrain} · ${currentSortie.saison} · Difficulté ${currentSortie.difficulte} · ${currentSortie.duree_jours}j</div>`;
+  await refreshParticipants();
+  await refreshRepas();
+}
+
+async function refreshParticipants(){
+  const parts = await apiGet('participants', {sortie_id: currentSortieId});
+  const presentSet = new Set(parts.filter(p => String(p.present) === 'true' || p.present === true).map(p => p.pseudo));
+  const container = document.getElementById('participants-list');
+  container.innerHTML = '';
+  membresCache.forEach(m => {
+    const chip = document.createElement('div');
+    chip.className = 'part-chip' + (presentSet.has(m.pseudo) ? ' present' : '');
+    chip.textContent = m.pseudo;
+    chip.onclick = async () => {
+      const nowPresent = !chip.classList.contains('present');
+      await apiPost('participant_set', {sortie_id: currentSortieId, pseudo: m.pseudo, present: nowPresent});
+      await refreshParticipants();
+    };
+    container.appendChild(chip);
+  });
+  await computeAllKits();
+}
+
+// ---- moteur (identique aux versions précédentes) ----
 function nearestConfort(items, target){
   const order = ['Sommaire','Confortable','Luxe'];
   const ti = order.indexOf(target);
@@ -424,10 +433,6 @@ function bySaison(items, saison){
 function lightest(items){ return items.length ? items.reduce((a,b)=> a.poids<=b.poids?a:b) : null; }
 function heaviest(items){ return items.length ? items.reduce((a,b)=> a.poids>=b.poids?a:b) : null; }
 function pick(sc, saison, confort){ if(!sc||!sc.length) return null; return nearestConfort(bySaison(sc, saison), confort); }
-/**
- * Comme pick(), mais retourne un TABLEAU : l'objet choisi selon le confort visé (Sommaire/Confortable/Luxe),
- * PLUS tout objet marqué "Indispensable" (toujours inclus, quel que soit le confort demandé).
- */
 function pickWithIndispensables(sc, saison, confort){
   if(!sc || !sc.length) return [];
   const seasonPool = bySaison(sc, saison);
@@ -440,20 +445,14 @@ function pickWithIndispensables(sc, saison, confort){
   return result;
 }
 
-/**
- * Calcule le kit d'une personne : poids individuel (hors collectif) + liste des objets collectifs proposés.
- */
 function computeKit(catalog, params){
   const {nuitee, terrain, saison, confort, duree, difficulte, isCourse, autonomieRepas} = params;
   let individualWeight = 0;
   const sections = {};
-  const collectifProposals = []; // {label, poids, subcat}
+  const collectifProposals = [];
   const warnings = [];
-
-  function addSection(name, arr){ sections[name] = arr.filter(Boolean); }
   function checkEmpty(l, a){ if(!a || !a.length) warnings.push(l); }
 
-  // Couchage
   if(nuitee !== 'Journée'){
     const couchage = [];
     if(nuitee === 'Refuge'){
@@ -477,10 +476,9 @@ function computeKit(catalog, params){
       const bonus = pick(catalog.couchage['Bonus'], saison, confort);
       if(bonus){ couchage.push({label:bonus.nom, poids:bonus.poids, note:'bonus'}); individualWeight += bonus.poids; }
     }
-    addSection('🏕️ Couchage', couchage);
+    sections['🏕️ Couchage'] = couchage;
   }
 
-  // Vêtements
   const vet = [];
   checkEmpty('Couche protectrice', catalog.vetements['Couche protectrice']);
   pickWithIndispensables(catalog.vetements['Couche protectrice'], saison, confort).forEach(it => { vet.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; });
@@ -490,7 +488,7 @@ function computeKit(catalog, params){
     bySaison(catalog.vetements['Sous-couche chaude']||[], saison).forEach(i => { vet.push({label:i.nom, poids:i.poids, note:'base layer'}); individualWeight += i.poids; });
   }
   checkEmpty('Couche transpirante', catalog.vetements['Couche transpirante']);
-  pickWithIndispensables(catalog.vetements['Couche transpirante'], saison, confort).forEach((it, idx) => { vet.push({label:it.nom, poids:it.poids, note: (idx===0 && duree>=2) ? '+1 rechange conseillé' : ''}); individualWeight += it.poids; });
+  pickWithIndispensables(catalog.vetements['Couche transpirante'], saison, confort).forEach((it, idx) => { vet.push({label:it.nom, poids:it.poids, note:(idx===0 && duree>=2)?'+1 rechange conseillé':''}); individualWeight += it.poids; });
   checkEmpty('Pantalons et shorts', catalog.vetements['Pantalons et shorts']);
   pickWithIndispensables(catalog.vetements['Pantalons et shorts'], saison, confort).forEach(it => { vet.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; });
   const extremites = bySaison(catalog.vetements['Extrémités']||[], saison);
@@ -503,26 +501,24 @@ function computeKit(catalog, params){
   if(nuitee !== 'Journée' && nuitee !== 'Refuge'){
     vet.push({label:'Vêtement de rechange sec', poids:150, note:'estimé'}); individualWeight += 150;
   }
-  addSection('👕 Vêtements', vet);
+  sections['👕 Vêtements'] = vet;
 
-  // Équipements
   const eq = [];
+  const isCourseVal = isCourse;
   if(autonomieRepas){
     checkEmpty('Cuisine', catalog.equipements['Cuisine']);
     const cuisineItems = bySaison(catalog.equipements['Cuisine']||[], saison);
     const seenC = {};
     cuisineItems.forEach(i => {
       if(seenC[i.nom]) return; seenC[i.nom] = true;
-      const chosen = nearestConfort(cuisineItems.filter(x=>x.nom===i.nom), confort);
-      collectifProposals.push({label:chosen.nom, poids:chosen.poids, subcat:'Cuisine'});
+      const variants = cuisineItems.filter(x=>x.nom===i.nom);
+      collectifProposals.push({label: nearestConfort(variants, confort).nom, poids: nearestConfort(variants, confort).poids, subcat:'Cuisine'});
     });
   }
   checkEmpty('Survie', catalog.equipements['Survie']);
-  const survieItems = pickWithIndispensables(catalog.equipements['Survie'], saison, confort);
-  survieItems.forEach(s => { eq.push({label:s.nom, poids:s.poids}); individualWeight += s.poids; });
+  pickWithIndispensables(catalog.equipements['Survie'], saison, confort).forEach(s => { eq.push({label:s.nom, poids:s.poids}); individualWeight += s.poids; });
   checkEmpty('Hydratation', catalog.equipements['Hydratation']);
-  const hydraItems = pickWithIndispensables(catalog.equipements['Hydratation'], saison, confort);
-  hydraItems.forEach(hydra => {
+  pickWithIndispensables(catalog.equipements['Hydratation'], saison, confort).forEach(hydra => {
     eq.push({label:hydra.nom, poids:hydra.poids}); individualWeight += hydra.poids;
     if(duree >= 2 || saison === 'Chaude'){ eq.push({label:hydra.nom, poids:hydra.poids, note:'unité supplémentaire'}); individualWeight += hydra.poids; }
   });
@@ -530,11 +526,10 @@ function computeKit(catalog, params){
   pickWithIndispensables(catalog.equipements['Hygiène et nuit'], saison, confort).forEach(it => { eq.push({label:it.nom, poids:it.poids}); individualWeight += it.poids; });
   checkEmpty('Sac', catalog.equipements['Sac']);
   const sacPool = bySaison(catalog.equipements['Sac']||[], saison);
-  const sac = (isCourse || nuitee === 'Journée') ? lightest(sacPool) : heaviest(sacPool);
+  const sac = (isCourseVal || nuitee === 'Journée') ? lightest(sacPool) : heaviest(sacPool);
   if(sac){ eq.push({label:sac.nom, poids:sac.poids}); individualWeight += sac.poids; }
-  addSection('🎒 Équipements', eq);
+  sections['🎒 Équipements'] = eq;
 
-  // Nutrition
   const nut = [];
   nut.push({label:'Barres énergétiques / fruits secs', poids:150*duree, note:`${duree}j × 150g`}); individualWeight += 150*duree;
   if(isCourse){ nut.push({label:'Gels énergétiques (x4)', poids:160, note:'estimé'}); individualWeight += 160; }
@@ -543,18 +538,16 @@ function computeKit(catalog, params){
     nut.push({label:'Repas du soir (lyophilisé)', poids:150*duree, note:`${duree} nuit(s)`}); individualWeight += 150*duree;
     nut.push({label:'Petit-déjeuner', poids:100*duree, note:`${duree}j`}); individualWeight += 100*duree;
   }
-  addSection('🍫 Nutrition', nut);
+  sections['🍫 Nutrition'] = nut;
 
-  // Sécurité & divers
   const divers = [];
   divers.push({label:'Trousse de secours de base', poids:150, note:'estimé'}); individualWeight += 150;
   divers.push({label:'Crème solaire', poids:100, note:'estimé'}); individualWeight += 100;
   const lunPoids = (terrain==='Neige'||terrain==='Glacier') ? 60 : 30;
   divers.push({label:(terrain==='Neige'||terrain==='Glacier')?'Lunettes de glacier (cat.4)':'Lunettes de soleil', poids:lunPoids, note:'estimé'}); individualWeight += lunPoids;
   divers.push({label:'Batterie externe', poids:200, note:'estimé'}); individualWeight += 200;
-  addSection('🩹 Sécurité & divers', divers);
+  sections['🩹 Sécurité & divers'] = divers;
 
-  // Matériel technique
   const tech = [];
   function addTech(label, note){
     const poids = TECH_POIDS[label] || 0;
@@ -579,44 +572,9 @@ function computeKit(catalog, params){
     addTech('Matériel pêche / vêtements étanches');
   }
   if(difficulte >= 4) addTech('GPS (si pas de smartphone fiable)', 'sécurité');
-  if(tech.length) addSection('⚠️ Matériel technique', tech);
+  if(tech.length) sections['⚠️ Matériel technique'] = tech;
 
   return { sections, individualWeight, collectifProposals, warnings };
-}
-
-// ---------------- Détail sortie ----------------
-async function openSortie(id){
-  currentSortie = sortiesCache.find(s => String(s.sortie_id) === String(id));
-  currentSortieId = id;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.screen').forEach(s => s.hidden = true);
-  document.getElementById('screen-detail').hidden = false;
-
-  document.getElementById('detail-header').innerHTML = `<h3>${currentSortie.titre}</h3>
-    <div class="sortie-meta">${currentSortie.type_activite} · ${currentSortie.mode_nuitee} · ${currentSortie.terrain} · ${currentSortie.saison} · Difficulté ${currentSortie.difficulte} · ${currentSortie.duree_jours}j</div>`;
-
-  await refreshParticipants();
-  await refreshRepas();
-}
-
-async function refreshParticipants(){
-  const parts = await apiGet('participants', {sortie_id: currentSortieId});
-  const presentSet = new Set(parts.filter(p => String(p.present) === 'true' || p.present === true).map(p => p.pseudo));
-  const container = document.getElementById('participants-list');
-  container.innerHTML = '';
-  membresCache.forEach(m => {
-    const chip = document.createElement('div');
-    chip.className = 'part-chip' + (presentSet.has(m.pseudo) ? ' present' : '');
-    chip.textContent = m.pseudo;
-    chip.onclick = async () => {
-      const nowPresent = !chip.classList.contains('present');
-      await apiPost('participant_set', {sortie_id: currentSortieId, pseudo: m.pseudo, present: nowPresent});
-      await refreshParticipants();
-      await computeAllKits();
-    };
-    container.appendChild(chip);
-  });
-  await computeAllKits();
 }
 
 async function computeAllKits(){
@@ -631,14 +589,12 @@ async function computeAllKits(){
   };
   for(const pseudo of present){
     const items = await apiGet('inventaire', {pseudo});
-    const catalog = catalogFromItems(items);
-    kitCache[pseudo] = computeKit(catalog, params);
+    kitCache[pseudo] = computeKit(catalogFromItems(items), params);
   }
   await renderCollectifAndRecap(present);
 }
 
 async function renderCollectifAndRecap(present){
-  // Regrouper les propositions collectives par sous-catégorie : on ne garde qu'UN objet par sous-catégorie (le plus léger dispo dans le groupe)
   const bySubcat = {};
   present.forEach(pseudo => {
     (kitCache[pseudo].collectifProposals || []).forEach(p => {
@@ -648,7 +604,6 @@ async function renderCollectifAndRecap(present){
   });
   const groupCollectifItems = [];
   for(const subcat of Object.keys(bySubcat)){
-    // dédoublonner par label, garder le plus léger si plusieurs objets identiques de subcat proposés
     const uniqueByLabel = {};
     bySubcat[subcat].forEach(p => { if(!uniqueByLabel[p.label] || p.poids < uniqueByLabel[p.label].poids) uniqueByLabel[p.label] = p; });
     Object.values(uniqueByLabel).forEach(p => groupCollectifItems.push(p));
@@ -672,7 +627,7 @@ async function renderCollectifAndRecap(present){
   });
 
   window._groupCollectifItems = groupCollectifItems;
-  await renderRecap(present, groupCollectifItems, attribMap);
+  renderRecap(present, groupCollectifItems, attribMap);
 }
 
 async function reassign(objet, poids, pseudo){
@@ -695,7 +650,7 @@ async function autoAssign(){
   await computeAllKits();
 }
 
-async function renderRecap(present, groupCollectifItems, attribMap){
+function renderRecap(present, groupCollectifItems, attribMap){
   const container = document.getElementById('recap-list');
   container.innerHTML = '';
   let grandTotal = 0;
@@ -714,7 +669,7 @@ async function renderRecap(present, groupCollectifItems, attribMap){
     }).join('');
     const collectifHtml = collectifCarried.length ? `<div class="subcat-label">🤝 Matériel collectif porté</div>` +
       collectifCarried.map(i => `<div class="item-row"><span>${i.label}</span><span>${i.poids}g</span></div>`).join('') : '';
-    const warnHtml = kit.warnings.length ? `<div class="warn" style="margin-top:8px;">Inventaire incomplet pour : ${kit.warnings.join(', ')}</div>` : '';
+    const warnHtml = kit.warnings.length ? `<div class="warn">Inventaire incomplet pour : ${kit.warnings.join(', ')}</div>` : '';
     div.innerHTML = `<h4>${pseudo} <span>${(total/1000).toFixed(2)} kg</span></h4>${sectionsHtml}${collectifHtml}${warnHtml}`;
     container.appendChild(div);
   });
@@ -723,7 +678,7 @@ async function renderRecap(present, groupCollectifItems, attribMap){
     : '<div class="empty">Aucun participant coché.</div>';
 }
 
-// ---------------- Repas ----------------
+// ================= Repas =================
 async function refreshRepas(){
   const repas = await apiGet('repas', {sortie_id: currentSortieId});
   const container = document.getElementById('repas-list');
@@ -754,7 +709,6 @@ async function addRepas(){
   };
   if(!body.plat) return;
   await apiPost('repas_add', body);
-  document.getElementById('r_plat').value = '';
   refreshRepas();
 }
 async function delRepas(jour, moment, plat, responsable){
