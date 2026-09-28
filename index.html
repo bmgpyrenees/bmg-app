@@ -10,69 +10,79 @@
 <link href="https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@300&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0A1E1E; --panel:#0F2827; --border:#1A3B39; --text:#FAF0E6;
-    --muted:#7E9791; --accent:#5FAD56; --accent2:#FFCB47; --danger:#E0665A;
+    --bg:#fff; --panel:#fff; --border:#000; --text:#000;
+    --muted:#6b6b6b; --accent:#000; --accent2:#000; --danger:#000;
   }
   *{box-sizing:border-box;}
-  body{margin:0; font-family:'Inter',Arial,sans-serif; font-weight:400; background:var(--bg); color:var(--text); padding:20px; font-size:17px;}
-  h1,h2,h3,h4,h5{font-family:'Stack Sans Headline',sans-serif; font-weight:300; letter-spacing:0.01em; margin:0 0 10px;}
-  h1{font-size:1.7rem;}
-  h2{font-size:1.25rem; margin-top:0;}
-  h3{font-size:1.1rem;}
-  h4{font-size:1rem;}
-  .sub{color:var(--muted); font-size:1rem; margin-bottom:20px;}
-  .nav{display:flex; gap:24px; margin-bottom:24px; flex-wrap:wrap;}
-  .navbtn{padding:4px 0; cursor:pointer; color:var(--muted); font-size:1.05rem; background:none; border:none; font-family:'Inter',Arial,sans-serif;}
-  .navbtn.active{color:var(--text); font-weight:600;}
-  .panel{background:var(--panel); border-radius:10px; padding:18px; margin-bottom:20px;}
-  label{display:block; font-size:0.85rem; color:var(--muted); margin-bottom:4px;}
-  select, input[type=number], input[type=text], input[type=date]{width:100%; padding:9px; border-radius:6px; border:none; border-bottom:1px solid var(--border); background:transparent; color:var(--text); font-family:'Inter',Arial,sans-serif; font-size:1rem;}
-  select:focus, input:focus{outline:none; border-bottom:1px solid var(--accent);}
-  .grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); align-items:end;}
-  button{background:var(--accent); border:none; color:var(--bg); font-weight:600; font-family:'Inter',Arial,sans-serif; padding:9px 16px; border-radius:6px; cursor:pointer; font-size:0.95rem;}
-  button.secondary{background:transparent; color:var(--muted); padding-left:0; padding-right:0;}
-  button.danger{background:var(--danger); color:white;}
-  button.small{padding:4px 10px; font-size:0.85rem;}
-  .btnrow{display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap; align-items:center;}
-  .weightbar{display:flex; align-items:center; gap:24px; flex-wrap:wrap;}
-  .weightbar .big{font-family:'Stack Sans Headline',sans-serif; font-size:1.6rem; font-weight:300; color:var(--text);}
-  .weightbar .label{font-size:0.85rem; color:var(--muted);}
-  .cats{display:grid; gap:24px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
-  .cat{background:var(--panel); border-radius:8px; padding:14px;}
-  .cat h4{margin:0 0 8px;}
-  .item-row{font-size:0.95rem; padding:4px 0; display:flex; justify-content:space-between; gap:6px;}
-  .subcat-label{display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); margin:14px 0 2px;}
-  .note{display:block; font-size:0.82rem; color:var(--muted);}
-  .empty{color:var(--muted); font-size:0.95rem; padding:6px 0;}
-  .warn{background:rgba(224,102,90,0.12); border-radius:8px; padding:12px 14px; font-size:0.9rem; color:var(--danger); margin-bottom:16px;}
-  .status{font-size:0.85rem; color:var(--muted); margin-top:8px;}
-  .sortie-card{background:var(--panel); border-radius:8px; padding:14px; margin-bottom:10px; cursor:pointer;}
-  .sortie-card h4{margin:0 0 4px;}
-  .sortie-meta{font-size:0.85rem; color:var(--muted);}
-  .participants-list{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
-  .part-chip{padding:6px 12px; border-radius:20px; font-size:0.9rem; cursor:pointer; background:var(--panel); color:var(--muted);}
-  .part-chip.present{background:var(--accent); color:var(--bg); font-weight:600;}
-  .recap-card{background:var(--panel); border-radius:8px; padding:14px; margin-bottom:10px;}
-  .recap-card h4{margin:0 0 4px; display:flex; justify-content:space-between;}
-  .collectif-row{display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:0.9rem; padding:4px 0;}
-  .repas-day{margin-bottom:10px;}
-  .repas-day h5{font-size:0.95rem; color:var(--muted); margin:6px 0 2px; font-weight:400; letter-spacing:0.02em;}
-  .repas-item{font-size:0.9rem; display:flex; justify-content:space-between; padding:2px 0;}
-  select.mini{width:auto; padding:4px 6px; font-size:0.85rem;}
+  html{font-size:16px;}
+  body{margin:0 auto; max-width:1100px; font-family:'Inter',Arial,sans-serif; font-weight:400; background:#fff; color:#000; padding:48px 40px; font-size:12pt; line-height:1.5;}
+  h1,h3,h4,h5{margin:0;}
+  h1{font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:60pt; line-height:1; letter-spacing:-0.02em; margin-bottom:8px;}
+  h3{font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:24pt; line-height:1.1; margin-bottom:24px;}
+  h4{font-family:'Inter',Arial,sans-serif; font-weight:600; font-size:12pt; margin-bottom:4px;}
+  h5{font-family:'Inter',Arial,sans-serif; font-weight:600; font-size:9pt; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin:16px 0 4px;}
+  .sub{color:var(--muted); font-size:12pt; margin-bottom:8px;}
+  .tagline{font-size:12pt; color:var(--muted); margin-bottom:40px;}
+  .nav{display:flex; gap:32px; margin:48px 0 40px; flex-wrap:wrap;}
+  .navbtn{background:none; border:none; border-radius:0; padding:0 0 4px; font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:24pt; color:var(--muted); cursor:pointer; letter-spacing:0; border-bottom:2px solid transparent;}
+  .navbtn:hover{background:none; color:#000;}
+  .navbtn.active{color:#000; border-bottom:2px solid #000;}
+  .panel{margin-bottom:56px;}
+  label{display:block; font-size:9pt; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:4px;}
+  select, input[type=number], input[type=text], input[type=date]{width:100%; padding:8px 0; border:none; border-bottom:1px solid #000; border-radius:0; background:transparent; color:#000; font-family:'Inter',Arial,sans-serif; font-size:12pt; -webkit-appearance:none; appearance:none;}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='black'/></svg>"); background-repeat:no-repeat; background-position:right 2px center; padding-right:20px; cursor:pointer;}
+  select:focus, input:focus{outline:none; border-bottom:2px solid #000;}
+  .grid{display:grid; gap:28px 32px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); align-items:end;}
+  button{background:#000; color:#fff; border:1px solid #000; border-radius:0; padding:10px 20px; font-family:'Inter',Arial,sans-serif; font-size:10pt; font-weight:500; letter-spacing:0.04em; cursor:pointer;}
+  button:hover{background:#fff; color:#000;}
+  button.secondary{background:transparent; color:#000; border:none; padding:0; text-decoration:underline; font-weight:400;}
+  button.secondary:hover{background:transparent;}
+  button.small{padding:6px 12px; font-size:9pt;}
+  button.secondary.small{padding:0;}
+  .btnrow{display:flex; gap:24px; margin-bottom:24px; flex-wrap:wrap; align-items:baseline;}
+  .btnrow h3{margin-bottom:0;}
+  .weightbar{display:flex; align-items:baseline; gap:32px; flex-wrap:wrap;}
+  .weightbar .big{font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:40pt; line-height:1;}
+  .weightbar .label{font-size:9pt; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);}
+  .cats{display:grid; gap:48px 40px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+  .cat h4, .recap-card h4, .sortie-card h4{font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:18pt; line-height:1.15; margin-bottom:8px;}
+  .recap-card h4{display:flex; justify-content:space-between; align-items:baseline;}
+  .item-row{font-size:12pt; padding:5px 0; display:flex; justify-content:space-between; gap:12px;}
+  .subcat-label{display:block; font-size:9pt; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin:24px 0 4px;}
+  .note{display:block; font-size:10pt; color:var(--muted);}
+  .lnk{font-size:10pt; color:var(--muted); cursor:pointer; text-decoration:underline; margin-left:14px;}
+  .empty{color:var(--muted); font-size:12pt; padding:4px 0;}
+  .warn{border-left:3px solid #000; padding:4px 0 4px 14px; margin:16px 0; font-size:11pt;}
+  .status{font-size:10pt; color:var(--muted); margin-top:16px;}
+  .sortie-card{padding:0 0 32px; cursor:pointer;}
+  .sortie-card:hover h4{text-decoration:underline;}
+  .sortie-meta{font-size:11pt; color:var(--muted);}
+  .participants-list{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:8px;}
+  .part-chip{padding:6px 14px; border:1px solid #000; font-size:11pt; cursor:pointer; background:#fff; color:#000;}
+  .part-chip.present{background:#000; color:#fff;}
+  .recap-card{margin-bottom:56px;}
+  .collectif-row{display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:12pt; padding:6px 0;}
+  .repas-day{margin-bottom:16px;}
+  .repas-item{font-size:12pt; display:flex; justify-content:space-between; gap:12px; padding:3px 0;}
+  select.mini{width:auto; font-size:11pt; padding-top:4px; padding-bottom:4px;}
   @media (max-width: 480px){
-    body{padding:14px; font-size:16px;}
-    h1{font-size:1.4rem;}
+    body{padding:24px 18px;}
+    h1{font-size:40pt;}
+    h3{font-size:20pt;}
+    .navbtn{font-size:16pt;}
+    .nav{gap:20px; margin:32px 0 28px;}
     .grid, .cats{grid-template-columns:1fr;}
-    .nav{gap:14px;}
+    .weightbar .big{font-size:30pt;}
   }
 </style>
 </head>
 <body>
 
-<h1>🎒 BMG — Sorties &amp; Équipement</h1>
+<h1>BMG</h1>
+<div class="tagline">Sorties &amp; équipement</div>
 <div class="sub" id="whoami-status">Chargement...</div>
 <div class="sub" id="switch-user-row" style="display:none;">
-  <span id="current-user-label" style="font-weight:600;"></span> — <a href="#" onclick="showIdentityPanel(); return false;" style="color:var(--accent);">changer d'identité</a>
+  <span id="current-user-label" style="font-weight:600;"></span> — <a href="#" onclick="showIdentityPanel(); return false;" style="color:#000;">changer d'identité</a>
 </div>
 
 <div id="app" style="display:none;">
@@ -85,8 +95,8 @@
 </div>
 
 <div class="nav">
-  <button class="navbtn active" data-view="equipement" onclick="setView('equipement')">🎒 Mon équipement</button>
-  <button class="navbtn" data-view="sorties" onclick="setView('sorties')">🥾 Sorties</button>
+  <button class="navbtn active" data-view="equipement" onclick="setView('equipement')">Équipement</button>
+  <button class="navbtn" data-view="sorties" onclick="setView('sorties')">Sorties</button>
 </div>
 
 <div id="content"></div>
@@ -205,7 +215,7 @@ function renderEquipementScreen(){
     <div class="status" id="inv_status"></div>
   </div>
   <div class="panel">
-    <div class="btnrow"><h3 style="margin:0;">Mon inventaire</h3><button class="secondary small" onclick="loadInventaire()">🔄 Actualiser</button></div>
+    <div class="btnrow"><h3 style="margin:0;">Mon inventaire</h3><button class="secondary small" onclick="loadInventaire()">Actualiser</button></div>
     <div id="inv_list" class="cats"></div>
   </div>`;
 }
@@ -238,7 +248,7 @@ function renderInventaireList(items){
   const container = document.getElementById('inv_list');
   if(!container) return;
   container.innerHTML = '';
-  const labels = {couchage:'🏕️ Couchage', vetements:'👕 Vêtements', equipements:'🎒 Équipements'};
+  const labels = {couchage:'Couchage', vetements:'Vêtements', equipements:'Équipements'};
   for(const cat of Object.keys(SUBCATS)){
     const div = document.createElement('div');
     div.className = 'cat';
@@ -250,10 +260,7 @@ function renderInventaireList(items){
       else arr.forEach(it => {
         const nomEsc = it.nom.replace(/'/g,"\\'");
         html += `<div class="item-row"><span>${it.nom} (${it.saison}, ${it.confort}, ${it.poids}g)</span>
-          <span>
-            <span style="color:var(--accent); cursor:pointer; margin-right:8px;" onclick="editInvItem('${cat}','${sub}','${nomEsc}','${it.saison}','${it.confort}',${it.poids})">✎</span>
-            <span style="color:var(--danger); cursor:pointer;" onclick="delInvItem('${cat}','${sub}','${nomEsc}',${it.poids})">✕</span>
-          </span></div>`;
+          <span><span class="lnk" onclick="editInvItem('${cat}','${sub}','${nomEsc}','${it.saison}','${it.confort}',${it.poids})">modifier</span><span class="lnk" onclick="delInvItem('${cat}','${sub}','${nomEsc}',${it.poids})">supprimer</span></span></div>`;
       });
     }
     div.innerHTML = html;
@@ -272,7 +279,7 @@ function editInvItem(cat, sub, nom, saison, confort, poids){
   document.getElementById('inv_saison').value = saison;
   document.getElementById('inv_confort').value = confort;
   document.getElementById('inv_poids').value = poids;
-  document.getElementById('inv_submit_btn').textContent = '💾 Enregistrer';
+  document.getElementById('inv_submit_btn').textContent = 'Enregistrer';
   document.getElementById('inv_cancel_btn').style.display = 'inline-block';
 }
 function cancelEditInv(){
@@ -325,7 +332,7 @@ function renderSortiesListScreen(){
       <div><button onclick="createSortie()">+ Créer la sortie</button></div>
     </div>
   </div>
-  <div class="btnrow"><h3 style="margin:0;">Sorties existantes</h3><button class="secondary small" onclick="loadSorties()">🔄 Actualiser</button></div>
+  <div class="btnrow"><h3 style="margin:0;">Sorties existantes</h3><button class="secondary small" onclick="loadSorties()">Actualiser</button></div>
   <div id="sorties-cards"></div>`;
 }
 
@@ -362,14 +369,14 @@ async function createSortie(){
 // ================= ÉCRAN DÉTAIL SORTIE =================
 function renderSortieDetailScreen(){
   return `
-  <button class="secondary" onclick="currentSortieId=null; render();">&larr; Retour aux sorties</button>
+  <button class="secondary" onclick="currentSortieId=null; render();">Retour aux sorties</button>
   <div class="panel" id="detail-header"></div>
   <div class="panel">
     <h3>Participants</h3>
     <div class="participants-list" id="participants-list"></div>
   </div>
   <div class="panel">
-    <div class="btnrow"><h3 style="margin:0;">Matériel collectif</h3><button class="small" onclick="autoAssign()">↻ Réassigner automatiquement</button></div>
+    <div class="btnrow"><h3 style="margin:0;">Matériel collectif</h3><button class="small" onclick="autoAssign()">Réassigner automatiquement</button></div>
     <div id="collectif-list"></div>
   </div>
   <div class="panel">
@@ -476,7 +483,7 @@ function computeKit(catalog, params){
       const bonus = pick(catalog.couchage['Bonus'], saison, confort);
       if(bonus){ couchage.push({label:bonus.nom, poids:bonus.poids, note:'bonus'}); individualWeight += bonus.poids; }
     }
-    sections['🏕️ Couchage'] = couchage;
+    sections['Couchage'] = couchage;
   }
 
   const vet = [];
@@ -501,7 +508,7 @@ function computeKit(catalog, params){
   if(nuitee !== 'Journée' && nuitee !== 'Refuge'){
     vet.push({label:'Vêtement de rechange sec', poids:150, note:'estimé'}); individualWeight += 150;
   }
-  sections['👕 Vêtements'] = vet;
+  sections['Vêtements'] = vet;
 
   const eq = [];
   const isCourseVal = isCourse;
@@ -528,7 +535,7 @@ function computeKit(catalog, params){
   const sacPool = bySaison(catalog.equipements['Sac']||[], saison);
   const sac = (isCourseVal || nuitee === 'Journée') ? lightest(sacPool) : heaviest(sacPool);
   if(sac){ eq.push({label:sac.nom, poids:sac.poids}); individualWeight += sac.poids; }
-  sections['🎒 Équipements'] = eq;
+  sections['Équipements'] = eq;
 
   const nut = [];
   nut.push({label:'Barres énergétiques / fruits secs', poids:150*duree, note:`${duree}j × 150g`}); individualWeight += 150*duree;
@@ -538,7 +545,7 @@ function computeKit(catalog, params){
     nut.push({label:'Repas du soir (lyophilisé)', poids:150*duree, note:`${duree} nuit(s)`}); individualWeight += 150*duree;
     nut.push({label:'Petit-déjeuner', poids:100*duree, note:`${duree}j`}); individualWeight += 100*duree;
   }
-  sections['🍫 Nutrition'] = nut;
+  sections['Nutrition'] = nut;
 
   const divers = [];
   divers.push({label:'Trousse de secours de base', poids:150, note:'estimé'}); individualWeight += 150;
@@ -546,7 +553,7 @@ function computeKit(catalog, params){
   const lunPoids = (terrain==='Neige'||terrain==='Glacier') ? 60 : 30;
   divers.push({label:(terrain==='Neige'||terrain==='Glacier')?'Lunettes de glacier (cat.4)':'Lunettes de soleil', poids:lunPoids, note:'estimé'}); individualWeight += lunPoids;
   divers.push({label:'Batterie externe', poids:200, note:'estimé'}); individualWeight += 200;
-  sections['🩹 Sécurité & divers'] = divers;
+  sections['Sécurité & divers'] = divers;
 
   const tech = [];
   function addTech(label, note){
@@ -572,7 +579,7 @@ function computeKit(catalog, params){
     addTech('Matériel pêche / vêtements étanches');
   }
   if(difficulte >= 4) addTech('GPS (si pas de smartphone fiable)', 'sécurité');
-  if(tech.length) sections['⚠️ Matériel technique'] = tech;
+  if(tech.length) sections['Matériel technique'] = tech;
 
   return { sections, individualWeight, collectifProposals, warnings };
 }
@@ -667,7 +674,7 @@ function renderRecap(present, groupCollectifItems, attribMap){
       if(!items.length) return '';
       return `<div class="subcat-label">${name}</div>` + items.map(i => `<div class="item-row"><span>${i.label}${i.note?` <span class="note">(${i.note})</span>`:''}</span><span>${i.poids}g</span></div>`).join('');
     }).join('');
-    const collectifHtml = collectifCarried.length ? `<div class="subcat-label">🤝 Matériel collectif porté</div>` +
+    const collectifHtml = collectifCarried.length ? `<div class="subcat-label">Matériel collectif porté</div>` +
       collectifCarried.map(i => `<div class="item-row"><span>${i.label}</span><span>${i.poids}g</span></div>`).join('') : '';
     const warnHtml = kit.warnings.length ? `<div class="warn">Inventaire incomplet pour : ${kit.warnings.join(', ')}</div>` : '';
     div.innerHTML = `<h4>${pseudo} <span>${(total/1000).toFixed(2)} kg</span></h4>${sectionsHtml}${collectifHtml}${warnHtml}`;
@@ -691,7 +698,7 @@ async function refreshRepas(){
     let html = `<h5>Jour ${jour}</h5>`;
     byJour[jour].forEach(r => {
       html += `<div class="repas-item"><span>${r.moment} — ${r.plat} <span class="note">(${r.responsable}, ${r.portions} pers.)</span></span>
-        <span style="color:var(--danger); cursor:pointer;" onclick="delRepas(${jour},'${r.moment}','${r.plat.replace(/'/g,"\\'")}','${r.responsable}')">✕</span></div>`;
+        <span class="lnk" onclick="delRepas(${jour},'${r.moment}','${r.plat.replace(/'/g,"\\'")}','${r.responsable}')">supprimer</span></div>`;
     });
     div.innerHTML = html;
     container.appendChild(div);
