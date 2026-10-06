@@ -10,91 +10,156 @@
 <link href="https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@300&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#fff; --panel:#fff; --border:#000; --text:#000;
-    --muted:#6b6b6b; --accent:#000; --accent2:#000; --danger:#000; --green:#5FAD56; --green-hover:#539F4A; --on-green:rgba(0,0,0,0.62);
+    --bg:#F3F4F0; --card:#fff; --line:#D5D8CF; --ink:#111; --muted:#4F5557;
+    --green:#5FAD56; --green-dark:#2E6B2A; --green-soft:#E7F2E4; --warn:#B3261E;
   }
   *{box-sizing:border-box;}
   html{font-size:16px;}
-  body{margin:0 auto; max-width:1100px; font-family:'Inter',Arial,sans-serif; font-weight:400; background:#fff; color:#000; padding:48px 40px; font-size:12pt; line-height:1.5;}
-  h1,h3,h4,h5{margin:0;}
-  h1{font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:60pt; line-height:1; letter-spacing:-0.02em; margin-bottom:8px;}
-  h3{font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:24pt; line-height:1.1; margin-bottom:24px; display:inline-block; background:var(--green); padding:8px 18px;}
-  h4{font-family:'Inter',Arial,sans-serif; font-weight:600; font-size:12pt; margin-bottom:4px;}
-  h5{font-family:'Inter',Arial,sans-serif; font-weight:600; font-size:9pt; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin:16px 0 4px;}
-  .sub{color:var(--muted); font-size:12pt; margin-bottom:8px;}
-  .tagline{font-size:12pt; color:var(--muted); margin-bottom:40px;}
-  .nav{display:flex; gap:32px; margin:48px 0 28px; flex-wrap:wrap;}
-  .subnav{display:flex; gap:30px; margin:0 0 40px; padding-top:14px; border-top:1px solid #000; flex-wrap:wrap;}
-  .subbtn{background:none; border:none; border-bottom:2px solid transparent; border-radius:0; padding:6px 0; font-family:'Inter',Arial,sans-serif; font-size:13pt; font-weight:500; color:var(--muted); cursor:pointer; letter-spacing:0;}
-  .subbtn:hover{background:none; color:#000;}
-  .subbtn.active{color:#000; border-bottom:2px solid #000;}
-  .intro{color:var(--muted); font-size:11pt; margin:-12px 0 36px;}
-  .navbtn{background:none; border:none; border-radius:0; padding:8px 18px; font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:24pt; color:var(--muted); cursor:pointer; letter-spacing:0;}
-  .navbtn:hover{background:none; color:#000;}
-  .navbtn.active{color:#000; background:var(--green);}
-  .panel{margin-bottom:56px;}
-  label{display:block; font-size:9pt; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:4px;}
-  select, input[type=number], input[type=text], input[type=date]{width:100%; padding:8px 0; border:none; border-bottom:1px solid #000; border-radius:0; background:transparent; color:#000; font-family:'Inter',Arial,sans-serif; font-size:12pt; -webkit-appearance:none; appearance:none;}
-  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='black'/></svg>"); background-repeat:no-repeat; background-position:right 2px center; padding-right:20px; cursor:pointer;}
-  select:focus, input:focus{outline:none; border-bottom:2px solid #000;}
-  .grid{display:grid; gap:28px 32px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); align-items:end;}
-  button{background:#000; color:#fff; border:1px solid #000; border-radius:0; padding:10px 20px; font-family:'Inter',Arial,sans-serif; font-size:10pt; font-weight:500; letter-spacing:0.04em; cursor:pointer;}
-  button:hover{background:#fff; color:#000;}
-  button.secondary{background:transparent; color:#000; border:none; padding:0; text-decoration:underline; font-weight:400;}
-  button.secondary:hover{background:transparent;}
-  button.small{padding:6px 12px; font-size:9pt;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',Arial,sans-serif; font-size:15px; line-height:1.5;}
+  a{color:var(--ink);}
+  h1,h2,h3,h4,h5{margin:0;}
+
+  /* ---- En-tête ---- */
+  header.top{background:#fff; border-bottom:1px solid var(--ink); position:sticky; top:0; z-index:20;}
+  .top-in{max-width:1040px; margin:0 auto; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;}
+  .brand{display:flex; align-items:baseline; gap:12px;}
+  .brand h1{font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:32px; line-height:1; letter-spacing:-0.01em;}
+  .brand .tag{font-size:13px; color:var(--muted);}
+  .top-right{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+  .user{font-size:14px; color:var(--muted);}
+  .user b{color:var(--ink); font-weight:600;}
+  .wrap{max-width:1040px; margin:0 auto; padding:8px 24px 72px;}
+  .sub{color:var(--muted); font-size:14px; margin:16px 0;}
+
+  /* ---- Onglets ---- */
+  .tabs{display:flex; gap:4px; margin:24px 0 28px; border-bottom:2px solid var(--line); overflow-x:auto;}
+  .tab{background:none; color:var(--muted); border:none; border-bottom:4px solid transparent; margin-bottom:-2px; border-radius:0; padding:12px 20px; font-size:16px; font-weight:600; white-space:nowrap;}
+  .tab:hover{background:rgba(0,0,0,.04); color:var(--ink);}
+  .tab.active{color:var(--ink); border-bottom-color:var(--green); background:none;}
+
+  /* ---- Titres ---- */
+  h2.page-title{font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:36px; line-height:1.1; margin:4px 0 6px;}
+  .page-sub{color:var(--muted); font-size:15px; margin:0 0 24px; max-width:640px;}
+  h3{font-family:'Inter',Arial,sans-serif; font-weight:700; font-size:18px; line-height:1.25; margin:0 0 16px; padding-left:12px; border-left:5px solid var(--green);}
+  h4{font-family:'Inter',Arial,sans-serif; font-weight:700; font-size:16px; margin:0 0 6px;}
+  h5{font-family:'Inter',Arial,sans-serif; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:16px 0 4px;}
+
+  /* ---- Cartes / panneaux ---- */
+  .panel{background:var(--card); border:1px solid var(--line); padding:24px; margin-bottom:24px;}
+  #identity-panel{max-width:520px; margin-top:24px;}
+  .actionbar{margin:0 0 20px;}
+  .backbar{margin:24px 0 8px;}
+  .btnrow{display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap; align-items:center;}
+  .btnrow h3{margin:0;}
+
+  /* ---- Formulaires ---- */
+  label{display:block; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:6px;}
+  select, input[type=number], input[type=text], input[type=date]{width:100%; padding:10px 12px; border:1px solid #8E948E; border-radius:3px; background:#fff; color:var(--ink); font-family:inherit; font-size:15px; -webkit-appearance:none; appearance:none;}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='black'/></svg>"); background-repeat:no-repeat; background-position:right 12px center; padding-right:34px; cursor:pointer;}
+  select:focus, input:focus{outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(95,173,86,.4);}
+  select.mini{width:auto; padding:7px 32px 7px 10px; font-size:14px;}
+  .grid{display:grid; gap:18px 20px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); align-items:end;}
+
+  /* ---- Boutons ---- */
+  button{font-family:inherit; font-size:14px; font-weight:700; padding:11px 20px; background:var(--green); color:#0B2A08; border:1px solid var(--green-dark); border-radius:3px; cursor:pointer; letter-spacing:.01em;}
+  button:hover{background:var(--green-dark); color:#fff;}
+  button.outline{background:#fff; color:var(--ink); border:1px solid var(--ink);}
+  button.outline:hover, button.outline.active{background:var(--ink); color:#fff;}
+  button.secondary{background:none; border:none; color:var(--ink); text-decoration:underline; padding:0; font-weight:500;}
+  button.secondary:hover{background:none; color:var(--green-dark);}
+  button.small{padding:7px 14px; font-size:13px;}
   button.secondary.small{padding:0;}
-  .btnrow{display:flex; gap:24px; margin-bottom:24px; flex-wrap:wrap; align-items:baseline;}
-  .btnrow h3{margin-bottom:0;}
-  .weightbar{display:flex; align-items:baseline; gap:32px; flex-wrap:wrap; background:var(--green); padding:20px 22px;}
-  .weightbar .big{font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:40pt; line-height:1;}
-  .weightbar .label, .weightbar .note{font-size:9pt; text-transform:uppercase; letter-spacing:0.08em; color:var(--on-green);}
-  .cats{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
-  .cat, .recap-card, .sortie-card{background:var(--green); padding:20px 22px;}
-  .cat .subcat-label, .recap-card .subcat-label, .cat .note, .recap-card .note, .sortie-meta{color:var(--on-green);}
-  .cat .lnk, .cat .empty, .recap-card .empty{color:#000;}
-  .cat h4, .recap-card h4, .sortie-card h4{font-family:'Stack Sans Headline',sans-serif; font-weight:300; font-size:18pt; line-height:1.15; margin-bottom:8px;}
-  .recap-card h4{display:flex; justify-content:space-between; align-items:baseline;}
-  .item-row{font-size:12pt; padding:5px 0; display:flex; justify-content:space-between; gap:12px;}
-  .subcat-label{display:block; font-size:9pt; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin:24px 0 4px;}
-  .note{display:block; font-size:10pt; color:var(--muted);}
-  .lnk{font-size:10pt; color:var(--muted); cursor:pointer; text-decoration:underline; margin-left:14px;}
-  .empty{color:var(--muted); font-size:12pt; padding:4px 0;}
-  .warn{border-left:3px solid #000; padding:4px 0 4px 14px; margin:16px 0; font-size:11pt;}
-  .status{font-size:10pt; color:var(--muted); margin-top:16px;}
-  .sortie-card{margin-bottom:12px; cursor:pointer;}
-  .sortie-card:hover{background:var(--green-hover);}
-  .sortie-meta{font-size:11pt;}
-  .participants-list{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:8px;}
-  .part-chip{padding:6px 14px; border:1px solid #000; font-size:11pt; cursor:pointer; background:#fff; color:#000;}
-  .part-chip.present{background:var(--green); color:#000;}
-  .recap-card{margin-bottom:16px;}
-  .collectif-row{display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:12pt; padding:6px 0;}
+
+  /* ---- Textes d'appoint ---- */
+  .note{display:block; font-size:13px; color:var(--muted);}
+  .lnk{font-size:13px; font-weight:500; color:var(--ink); cursor:pointer; text-decoration:underline; margin-left:14px;}
+  .lnk:hover{color:var(--green-dark);}
+  .empty{color:var(--muted); font-size:14px; padding:6px 0;}
+  .warn{border-left:4px solid var(--warn); background:#FBECEA; padding:10px 14px; margin:14px 0; font-size:14px;}
+  .status{font-size:13px; color:var(--muted); margin-top:14px;}
+  .intro{color:var(--muted); font-size:15px; margin:0 0 24px;}
+  .sortie-meta{font-size:14px; color:var(--muted);}
+  .subcat-label{display:block; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:18px 0 4px;}
+
+  /* ---- Pastilles ---- */
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin:2px 0;}
+  .chip{font-size:12px; font-weight:500; background:#EEF0EA; border:1px solid var(--line); padding:3px 10px; border-radius:999px; color:#222;}
+  .chip.strong{background:#fff; border-color:var(--ink); font-weight:600;}
+  .chip.todo{background:#FFF4D6; border-color:#D9B44A;}
+  .badge{display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:4px 10px; border-radius:3px; white-space:nowrap;}
+  .badge.prevue{background:var(--green-soft); color:var(--green-dark); border:1px solid var(--green);}
+  .badge.faite{background:var(--ink); color:#fff; border:1px solid var(--ink);}
+  .badge.annulee{background:#EEE; color:#666; border:1px solid #CCC; text-decoration:line-through;}
+  .detail-badges{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:10px 0;}
+
+  /* ---- Cartes de sorties / idées ---- */
+  .sortie-card, .idea-card{display:flex; gap:16px; align-items:center; background:var(--card); border:1px solid var(--line); border-left:5px solid var(--green); padding:16px 18px; margin-bottom:12px;}
+  .sortie-card{cursor:pointer;}
+  .sortie-card:hover{border-color:var(--ink); border-left-color:var(--green-dark); box-shadow:0 2px 0 rgba(0,0,0,.1);}
+  .sc-date{flex:0 0 68px; text-align:center; background:var(--green-soft); padding:8px 6px;}
+  .sc-date.nodate{background:#EEF0EA;}
+  .sc-day{font-size:26px; font-weight:700; line-height:1;}
+  .sc-mon{font-size:12px; font-weight:700; text-transform:uppercase; color:var(--green-dark);}
+  .sc-dur{font-size:11px; color:var(--muted);}
+  .sc-body{flex:1; min-width:0;}
+  .sc-body h4{font-size:17px;}
+  .sc-orga{font-size:13px; color:var(--muted); margin-top:6px;}
+  .idea-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .idea-card{align-items:flex-start;}
+
+  /* ---- Inventaire perso ---- */
+  .cats{display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+  .cat{background:var(--card); border:1px solid var(--line); padding:18px 20px;}
+  .cat h4{font-size:16px; padding-bottom:8px; border-bottom:2px solid var(--green); margin-bottom:6px;}
+  .item-row{font-size:14px; padding:7px 0; display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid #ECEEE8;}
+
+  /* ---- Détail d'une sortie ---- */
+  .participants-list{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;}
+  .part-chip{padding:8px 14px; border:1px solid #8E948E; font-size:14px; font-weight:500; cursor:pointer; background:#fff; color:var(--ink); border-radius:999px;}
+  .part-chip.present{background:var(--green); border-color:var(--green-dark); font-weight:700; color:#0B2A08;}
+  .recap-card{background:var(--card); border:1px solid var(--line); padding:18px 20px; margin-bottom:16px;}
+  .recap-card h4{display:flex; justify-content:space-between; align-items:baseline; font-size:17px; padding-bottom:8px; border-bottom:2px solid var(--green); margin-bottom:6px;}
+  .collectif-row{display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:14px; padding:8px 0; border-bottom:1px solid #ECEEE8;}
   .repas-day{margin-bottom:16px;}
-  .repas-item{font-size:12pt; display:flex; justify-content:space-between; gap:12px; padding:3px 0;}
-  select.mini{width:auto; font-size:11pt; padding-top:4px; padding-bottom:4px;}
-  @media (max-width: 480px){
-    body{padding:24px 18px;}
-    h1{font-size:40pt;}
-    h3{font-size:20pt;}
-    .navbtn{font-size:16pt; padding:6px 12px;}
-    h3{padding:6px 12px;}
-    .nav{gap:20px; margin:32px 0 20px;}
-    .subnav{gap:20px;}
-    .subbtn{font-size:12pt;}
+  .repas-item{font-size:14px; display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid #ECEEE8;}
+  .weightbar{display:flex; align-items:baseline; gap:32px; flex-wrap:wrap; background:var(--green-soft); border:1px solid var(--green); padding:18px 22px;}
+  .weightbar .big{font-size:36px; font-weight:700; line-height:1.1;}
+  .weightbar .label, .weightbar .note{font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--green-dark);}
+
+  /* ---- Bilan ---- */
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px;}
+  .stat{background:var(--card); border:1px solid var(--line); border-top:4px solid var(--green); padding:16px 18px;}
+  .stat-n{font-size:32px; font-weight:700; line-height:1.1;}
+  .stat-l{font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
+
+  @media (max-width: 600px){
+    .top-in{padding:10px 16px;}
+    .wrap{padding:4px 16px 56px;}
+    .brand .tag{display:none;}
+    h2.page-title{font-size:28px;}
+    .tab{padding:10px 12px; font-size:14px;}
+    .sortie-card, .idea-card{flex-wrap:wrap; gap:12px;}
+    .sc-date{flex:0 0 58px;}
+    .top-right{width:100%; justify-content:space-between; gap:8px;}
+    .user{font-size:13px;}
     .grid, .cats{grid-template-columns:1fr;}
-    .weightbar .big{font-size:30pt;}
+    .weightbar .big{font-size:28px;}
+    .panel{padding:18px;}
   }
 </style>
 </head>
 <body>
 
-<h1>BMG</h1>
-<div class="tagline">Sorties &amp; équipement</div>
+<header class="top"><div class="top-in">
+  <div class="brand"><h1>BMG</h1><span class="tag">Sorties du club</span></div>
+  <div class="top-right">
+    <div class="user" id="switch-user-row" style="display:none;"><b id="current-user-label"></b> · <a href="#" onclick="showIdentityPanel(); return false;">changer d'identité</a></div>
+    <button class="outline small" id="btn-inv" onclick="setView('equipement')" style="display:none;">Mon inventaire</button>
+  </div>
+</div></header>
+
+<div class="wrap">
 <div class="sub" id="whoami-status">Chargement...</div>
-<div class="sub" id="switch-user-row" style="display:none;">
-  <span id="current-user-label" style="font-weight:600;"></span> — <a href="#" onclick="showIdentityPanel(); return false;" style="color:#000;">changer d'identité</a>
-</div>
 
 <div id="app" style="display:none;">
 
@@ -105,18 +170,15 @@
   </div>
 </div>
 
-<div class="nav" id="nav-space">
-  <button class="navbtn active" data-space="equipement" onclick="setSpace('equipement')">Mon équipement</button>
-  <button class="navbtn" data-space="sorties" onclick="setSpace('sorties')">Sorties du club</button>
-</div>
-<div class="subnav" id="subnav" style="display:none;">
-  <button class="subbtn" data-view="catalogue" onclick="setView('catalogue')">Idées de sorties</button>
-  <button class="subbtn active" data-view="sorties" onclick="setView('sorties')">Planifier une sortie</button>
-  <button class="subbtn" data-view="bilan" onclick="setView('bilan')">Bilan</button>
+<div class="tabs" id="subnav" style="display:none;">
+  <button class="tab active" data-view="sorties" onclick="setView('sorties')">Planifier une sortie</button>
+  <button class="tab" data-view="catalogue" onclick="setView('catalogue')">Idées de sorties</button>
+  <button class="tab" data-view="bilan" onclick="setView('bilan')">Bilan</button>
 </div>
 
 <div id="content"></div>
 
+</div>
 </div>
 
 <script>
@@ -152,12 +214,41 @@ function isBureau(){ const m = membresCache.find(x => x.pseudo === currentUser);
 function canManage(s){ return isBureau() || (!!s && !!s.organisateur && s.organisateur === currentUser); }
 function fmtNum(n){ return (n === '' || n === null || n === undefined) ? '' : Number(n).toLocaleString('fr-FR'); }
 let catalogueCache = [];
+const MOIS = ['JAN','FÉV','MAR','AVR','MAI','JUN','JUL','AOÛ','SEP','OCT','NOV','DÉC'];
+function chips(list){
+  const l = list.filter(x => x !== '' && x !== null && x !== undefined);
+  return l.length ? '<div class="chips">' + l.map(x => `<span class="chip">${esc(x)}</span>`).join('') + '</div>' : '';
+}
+function metaChips(s, withDuree){
+  return chips([s.type_activite, s.mode_nuitee, s.terrain, s.saison,
+    (s.difficulte !== '' && s.difficulte !== undefined) ? 'Difficulté ' + s.difficulte + '/5' : '',
+    withDuree && s.duree_jours ? s.duree_jours + ' j' : '',
+    (s.distance_km !== '' && s.distance_km !== undefined) ? fmtNum(s.distance_km) + ' km' : '',
+    (s.d_plus !== '' && s.d_plus !== undefined) ? 'D+ ' + fmtNum(s.d_plus) + ' m' : '']);
+}
+function statutBadge(st){
+  const k = st || 'prevue';
+  return `<span class="badge ${esc(k)}">${({prevue:'Prévue', faite:'Faite', annulee:'Annulée'})[k] || esc(k)}</span>`;
+}
+function dateBlock(s){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s.date || s.date_reelle || ''));
+  if(!m){
+    return s.annee ? `<div class="sc-date nodate"><div class="sc-day" style="font-size:20px;">${esc(s.annee)}</div><div class="sc-mon" style="color:var(--muted)">date à compléter</div></div>`
+                   : `<div class="sc-date nodate"><div class="sc-day">—</div><div class="sc-mon" style="color:var(--muted)">date libre</div></div>`;
+  }
+  return `<div class="sc-date"><div class="sc-day">${Number(m[3])}</div><div class="sc-mon">${MOIS[Number(m[2])-1]}</div>${s.duree_jours ? `<div class="sc-dur">${esc(s.duree_jours)} j</div>` : ''}</div>`;
+}
+function fmtDateLong(d){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d || ''));
+  if(!m) return '';
+  return new Date(Number(m[1]), Number(m[2])-1, Number(m[3])).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+}
 let sortieFilter = 'prevue';
 let bilanYear = null;
 let currentUser = null;
 let membresCache = [];
 let sortiesCache = [];
-let currentView = 'equipement';
+let currentView = 'sorties';
 let currentSortieId = null;
 let currentSortie = null;
 let kitCache = {};
@@ -196,27 +287,27 @@ function setIdentity(){
   document.getElementById('identity-panel').style.display = 'none';
   document.getElementById('whoami-status').textContent = '';
   document.getElementById('switch-user-row').style.display = 'block';
-  document.getElementById('current-user-label').textContent = 'Connecté comme ' + currentUser;
-  render();
+  document.getElementById('current-user-label').textContent = currentUser;
+  document.getElementById('btn-inv').style.display = 'inline-block';
+  setView(currentView);
 }
 function showIdentityPanel(){
   document.getElementById('who-select').value = currentUser;
   document.getElementById('identity-panel').style.display = 'block';
 }
 let lastClubView = 'sorties';
-function setSpace(space){
-  if(space === 'equipement') setView('equipement'); else setView(lastClubView);
-}
 function setView(view){
   currentView = view;
   currentSortieId = null;
-  const club = view !== 'equipement';
-  if(club) lastClubView = view;
-  document.querySelectorAll('#nav-space .navbtn').forEach(b => b.classList.toggle('active', (b.dataset.space === 'sorties') === club));
-  document.getElementById('subnav').style.display = club ? 'flex' : 'none';
-  document.querySelectorAll('#subnav .subbtn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  const inv = view === 'equipement';
+  if(!inv) lastClubView = view;
+  document.getElementById('subnav').style.display = inv ? 'none' : 'flex';
+  document.querySelectorAll('#subnav .tab').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  const bi = document.getElementById('btn-inv'); if(bi) bi.classList.toggle('active', inv);
   render();
+  window.scrollTo({top:0});
 }
+function leaveInventory(){ setView(lastClubView); }
 
 // ================= Rendu principal =================
 function render(){
@@ -243,7 +334,9 @@ function render(){
 // ================= ÉCRAN ÉQUIPEMENT =================
 function renderEquipementScreen(){
   return `
-  <div class="intro">Ton matériel personnel. Il sert à composer ton sac pour chaque sortie du club.</div>
+  <div class="backbar"><button class="outline small" onclick="leaveInventory()">← Retour aux sorties</button></div>
+  <h2 class="page-title">Mon inventaire</h2>
+  <p class="page-sub">Ton matériel personnel. Il sert à composer ton sac pour chaque sortie du club.</p>
   <div class="panel">
     <h3>Ajouter / modifier un objet</h3>
     <div class="grid" style="margin-bottom:14px;">
@@ -366,34 +459,47 @@ async function delInvItem(cat, sub, nom, poids){
 // ================= ÉCRAN LISTE DES SORTIES =================
 function renderSortiesListScreen(){
   return `
-  <div class="panel">
-    <h3>Planifier une sortie</h3>
+  <h2 class="page-title">Planifier une sortie</h2>
+  <p class="page-sub">Crée une sortie à partir d'une idée ou librement, inscris les participants et prépare les sacs.</p>
+  <div class="actionbar"><button id="btn-new-sortie" onclick="toggleSortieForm()">+ Nouvelle sortie</button></div>
+  <div class="panel" id="sortie-form" style="display:none;">
+    <h3>Nouvelle sortie</h3>
     <div class="grid" style="margin-bottom:10px;">
       <div style="grid-column:1/-1;"><label>Partir d'une idée de sortie (optionnel)</label>
         <select id="s_cat" onchange="prefillFromCatalogue()"><option value="">— Sortie libre —</option></select></div>
       <div><label>Titre</label><input type="text" id="s_titre"></div>
+      <div><label>Date</label><input type="date" id="s_date"></div>
+      <div><label>Durée (jours)</label><input type="number" id="s_duree" value="1" min="1"></div>
       <div><label>Type d'activité</label><select id="s_activite">${opts(TYPES,'Randonnée')}</select></div>
       <div><label>Mode de nuitée</label><select id="s_nuitee">${opts(NUITEES,'Journée')}</select></div>
       <div><label>Terrain</label><select id="s_terrain">${opts(TERRAINS,'Sentier')}</select></div>
       <div><label>Saison</label><select id="s_saison">${opts(SAISONS,'Été')}</select></div>
       <div><label>Difficulté</label><select id="s_difficulte">${opts(['1','2','3','4','5'],'2')}</select></div>
-      <div><label>Durée (j)</label><input type="number" id="s_duree" value="1" min="1"></div>
       <div><label>Distance (km)</label><input type="text" id="s_dist"></div>
       <div><label>D+ (m)</label><input type="text" id="s_dplus"></div>
-      <div><label>Date</label><input type="date" id="s_date"></div>
-      <div><button onclick="createSortie()">+ Planifier la sortie</button></div>
+    </div>
+    <div class="btnrow" style="margin-top:18px;">
+      <button onclick="createSortie()">Planifier la sortie</button>
+      <button class="secondary" onclick="toggleSortieForm(false)">Annuler</button>
     </div>
     <div class="status">Tu en seras l'organisateur : tu pourras modifier les inscriptions.</div>
   </div>
-  <div class="btnrow"><h3 style="margin:0;">Sorties du club</h3>
+  <div class="btnrow"><h3>Sorties du club</h3>
     <select id="s_filter" class="mini" onchange="sortieFilter=this.value; loadSorties();">
-      <option value="prevue" ${sortieFilter==='prevue'?'selected':''}>Prévues</option>
+      <option value="prevue" ${sortieFilter==='prevue'?'selected':''}>À venir</option>
       <option value="faite" ${sortieFilter==='faite'?'selected':''}>Faites</option>
       <option value="annulee" ${sortieFilter==='annulee'?'selected':''}>Annulées</option>
       <option value="toutes" ${sortieFilter==='toutes'?'selected':''}>Toutes</option>
     </select>
     <button class="secondary small" onclick="loadSorties()">Actualiser</button></div>
   <div id="sorties-cards"></div>`;
+}
+function toggleSortieForm(show){
+  const f = document.getElementById('sortie-form'); if(!f) return;
+  const vis = (show === undefined) ? f.style.display === 'none' : show;
+  f.style.display = vis ? 'block' : 'none';
+  document.getElementById('btn-new-sortie').style.display = vis ? 'none' : 'inline-block';
+  if(vis) f.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 async function loadSorties(){
@@ -412,13 +518,14 @@ async function loadSorties(){
   const list = sortiesCache
     .filter(s => sortieFilter === 'toutes' || (s.statut || 'prevue') === sortieFilter)
     .sort((a,b) => String(a.date||'9999').localeCompare(String(b.date||'9999')) || String(a.titre).localeCompare(String(b.titre),'fr'));
-  if(!list.length){ container.innerHTML = '<div class="empty">Aucune sortie dans cette vue.</div>'; return; }
+  if(!list.length){ container.innerHTML = '<div class="panel"><div class="empty">Aucune sortie dans cette vue.' + (sortieFilter==='prevue' ? ' Clique sur « + Nouvelle sortie » pour en planifier une.' : '') + '</div></div>'; return; }
   list.forEach(s => {
     const div = document.createElement('div');
     div.className = 'sortie-card';
     div.onclick = () => { currentSortieId = s.sortie_id; currentSortie = s; render(); };
-    const stat = s.statut === 'faite' ? ' · FAITE' : s.statut === 'annulee' ? ' · ANNULÉE' : '';
-    div.innerHTML = `<h4>${esc(s.titre)}</h4><div class="sortie-meta">${esc(s.type_activite)} · ${esc(s.mode_nuitee)} · ${esc(s.terrain)} · ${esc(s.saison)} · Difficulté ${esc(s.difficulte)} · ${esc(s.duree_jours)}j · ${esc(s.date || s.annee || 'date libre')}${stat}${s.organisateur?' · org. '+esc(s.organisateur):''}</div>`;
+    div.innerHTML = `${dateBlock(s)}
+      <div class="sc-body"><h4>${esc(s.titre)}</h4>${metaChips(s)}${s.organisateur ? `<div class="sc-orga">Organisateur : ${esc(s.organisateur)}</div>` : ''}</div>
+      <div>${statutBadge(s.statut)}</div>`;
     container.appendChild(div);
   });
 }
@@ -457,7 +564,10 @@ async function createSortie(){
 // ================= CATALOGUE =================
 function renderCatalogueScreen(){
   return `
-  <div class="panel">
+  <h2 class="page-title">Idées de sorties</h2>
+  <p class="page-sub">Les itinéraires repérés par le club. Propose une idée, ou planifie-en une en un clic.</p>
+  <div class="actionbar"><button id="btn-new-idee" onclick="toggleIdeeForm()">+ Proposer une idée</button></div>
+  <div class="panel" id="idee-form" style="display:none;">
     <h3 id="cat_form_title">Proposer une idée de sortie</h3>
     <div class="grid" style="margin-bottom:10px;">
       <div><label>Titre</label><input type="text" id="c_titre"></div>
@@ -466,26 +576,35 @@ function renderCatalogueScreen(){
       <div><label>Terrain</label><select id="c_terrain">${opts(TERRAINS,'Sentier')}</select></div>
       <div><label>Saison</label><select id="c_saison">${opts(SAISONS,'Été')}</select></div>
       <div><label>Difficulté</label><select id="c_difficulte">${opts(['1','2','3','4','5'],'2')}</select></div>
-      <div><label>Durée (j)</label><input type="number" id="c_duree" value="1" min="1"></div>
+      <div><label>Durée (jours)</label><input type="number" id="c_duree" value="1" min="1"></div>
       <div><label>Distance (km)</label><input type="text" id="c_dist"></div>
       <div><label>D+ (m)</label><input type="text" id="c_dplus"></div>
       <div><label>Topo (lien ou texte)</label><input type="text" id="c_topo"></div>
       <div><label>Notes</label><input type="text" id="c_notes"></div>
-      <div><button id="c_submit" onclick="saveCatalogue()">+ Ajouter</button></div>
-      <div><button id="c_cancel" class="secondary" onclick="cancelCatalogueEdit()" style="display:none;">Annuler</button></div>
     </div>
-    <div class="status">Tous les membres peuvent ajouter une idée. Elle sera modifiable par toi ou le bureau.</div>
+    <div class="btnrow" style="margin-top:18px;">
+      <button id="c_submit" onclick="saveCatalogue()">Ajouter l'idée</button>
+      <button class="secondary" onclick="cancelCatalogueEdit()">Annuler</button>
+    </div>
+    <div class="status">Tous les membres peuvent proposer une idée. Elle reste modifiable par toi ou par le bureau.</div>
   </div>
-  <div class="panel">
-    <div class="btnrow"><h3 style="margin:0;">Idées de sorties</h3><button class="secondary small" onclick="loadCatalogue()">Actualiser</button></div>
-    <div class="grid" style="margin-bottom:20px;">
+  <div class="btnrow"><h3>Toutes les idées</h3><button class="secondary small" onclick="loadCatalogue()">Actualiser</button></div>
+  <div class="panel" style="padding:18px 20px;">
+    <div class="grid">
       <div><label>Recherche</label><input type="text" id="f_q" oninput="renderCatalogueList()"></div>
       <div><label>Type</label><select id="f_type" onchange="renderCatalogueList()"><option value="">Tous</option>${opts(TYPES,'')}</select></div>
       <div><label>Saison</label><select id="f_saison" onchange="renderCatalogueList()"><option value="">Toutes</option>${opts(SAISONS,'')}</select></div>
       <div><label>Difficulté max</label><select id="f_diff" onchange="renderCatalogueList()"><option value="">—</option>${opts(['1','2','3','4','5'],'')}</select></div>
     </div>
-    <div id="catalogue-cards"></div>
-  </div>`;
+  </div>
+  <div id="catalogue-cards"></div>`;
+}
+function toggleIdeeForm(show){
+  const f = document.getElementById('idee-form'); if(!f) return;
+  const vis = (show === undefined) ? f.style.display === 'none' : show;
+  f.style.display = vis ? 'block' : 'none';
+  document.getElementById('btn-new-idee').style.display = vis ? 'none' : 'inline-block';
+  if(vis) f.scrollIntoView({behavior:'smooth', block:'start'});
 }
 let catEditId = null;
 async function loadCatalogue(){
@@ -504,20 +623,19 @@ function renderCatalogueList(){
     (!q || (String(c.titre) + ' ' + String(c.notes) + ' ' + String(c.organisateur)).toLowerCase().includes(q)) &&
     (!t || c.type_activite === t) && (!s || c.saison === s) && (!d || Number(c.difficulte) <= d))
     .sort((a,b) => String(a.titre).localeCompare(String(b.titre),'fr'));
-  if(!list.length){ box.innerHTML = '<div class="empty">Aucune idée ne correspond.</div>'; return; }
+  if(!list.length){ box.innerHTML = '<div class="panel"><div class="empty">Aucune idée ne correspond.</div></div>'; return; }
   box.innerHTML = '';
   list.forEach(c => {
     const div = document.createElement('div');
-    div.className = 'sortie-card';
-    div.style.cursor = 'default';
-    const topo = /^https?:\/\//.test(String(c.topo)) ? `<a href="${esc(c.topo)}" target="_blank" rel="noopener" style="color:#000;">topo</a>` : esc(c.topo);
+    div.className = 'idea-card';
+    const topo = /^https?:\/\//.test(String(c.topo)) ? `<a href="${esc(c.topo)}" target="_blank" rel="noopener">Voir le topo</a>` : esc(c.topo);
     const peutModifier = isBureau() || c.cree_par === currentUser || c.organisateur === currentUser || c.cree_par === 'migration';
-    div.innerHTML = `<h4>${esc(c.titre)}</h4>
-      <div class="sortie-meta">${esc(c.type_activite)} · ${esc(c.mode_nuitee)} · ${esc(c.terrain)} · ${esc(c.saison || 'saison à préciser')} · Difficulté ${esc(c.difficulte)} · ${esc(c.duree_jours)}j${c.distance_km!==''?' · '+esc(fmtNum(c.distance_km))+' km':''}${c.d_plus!==''?' · D+ '+esc(fmtNum(c.d_plus))+' m':''}${c.organisateur?' · idée de '+esc(c.organisateur):''}</div>
-      ${c.topo?`<div class="sortie-meta">${topo}</div>`:''}
-      ${c.notes?`<div class="sortie-meta">${esc(String(c.notes).slice(0,200))}</div>`:''}
-      <div style="margin-top:10px;"><button class="small" onclick="planifierDepuisCatalogue('${esc(c.catalogue_id)}')">Planifier</button>
-      ${peutModifier?`<span class="lnk" onclick="editCatalogue('${esc(c.catalogue_id)}')">modifier</span><span class="lnk" onclick="delCatalogue('${esc(c.catalogue_id)}')">supprimer</span>`:''}</div>`;
+    div.innerHTML = `<div class="sc-body"><h4>${esc(c.titre)}</h4>${metaChips(c, true)}
+      ${c.organisateur ? `<div class="sc-orga">Idée de ${esc(c.organisateur)}</div>` : ''}
+      ${c.topo ? `<div class="sc-orga">${topo}</div>` : ''}
+      ${c.notes ? `<div class="sc-orga">${esc(String(c.notes).slice(0,200))}</div>` : ''}</div>
+      <div class="idea-actions"><button class="small" onclick="planifierDepuisCatalogue('${esc(c.catalogue_id)}')">Planifier</button>
+      ${peutModifier ? `<span class="lnk" onclick="editCatalogue('${esc(c.catalogue_id)}')">modifier</span><span class="lnk" onclick="delCatalogue('${esc(c.catalogue_id)}')">supprimer</span>` : ''}</div>`;
     box.appendChild(div);
   });
 }
@@ -529,7 +647,7 @@ function planifierDepuisCatalogue(id){
     essais++;
     if(sel && sel.options.length > 1){
       clearInterval(t);
-      sel.value = id; prefillFromCatalogue(); window.scrollTo({top:0, behavior:'smooth'});
+      toggleSortieForm(true); sel.value = id; prefillFromCatalogue();
     } else if(essais > 40) clearInterval(t);
   }, 150);
 }
@@ -566,15 +684,14 @@ function editCatalogue(id){
   set('c_dist', c.distance_km); set('c_dplus', c.d_plus); set('c_topo', c.topo); set('c_notes', c.notes);
   document.getElementById('cat_form_title').textContent = 'Modifier l\'idée';
   document.getElementById('c_submit').textContent = 'Enregistrer';
-  document.getElementById('c_cancel').style.display = 'inline-block';
-  window.scrollTo({top:0, behavior:'smooth'});
+  toggleIdeeForm(true);
 }
 function cancelCatalogueEdit(){
   catEditId = null;
   ['c_titre','c_dist','c_dplus','c_topo','c_notes'].forEach(k => { const el = document.getElementById(k); if(el) el.value = ''; });
   const t = document.getElementById('cat_form_title'); if(t) t.textContent = 'Proposer une idée de sortie';
-  const b = document.getElementById('c_submit'); if(b) b.textContent = '+ Ajouter';
-  const c = document.getElementById('c_cancel'); if(c) c.style.display = 'none';
+  const b = document.getElementById('c_submit'); if(b) b.textContent = 'Ajouter l\'idée';
+  toggleIdeeForm(false);
 }
 async function delCatalogue(id){
   if(!confirm('Supprimer cette idée de sortie ?')) return;
@@ -586,12 +703,11 @@ async function delCatalogue(id){
 // ================= BILAN ANNUEL =================
 function renderBilanScreen(){
   return `
-  <div class="panel">
-    <div class="btnrow"><h3 style="margin:0;">Bilan annuel</h3>
-      <select id="b_year" class="mini" onchange="bilanYear=Number(this.value); loadBilan();"></select></div>
-    <div id="bilan-totaux"></div>
-    <div id="bilan-liste" style="margin-top:24px;"></div>
-  </div>`;
+  <h2 class="page-title">Bilan</h2>
+  <p class="page-sub">Ce que le club a réellement fait, année par année.</p>
+  <div class="btnrow"><h3>Année</h3><select id="b_year" class="mini" onchange="bilanYear=Number(this.value); loadBilan();"></select></div>
+  <div id="bilan-totaux" style="margin-bottom:24px;"></div>
+  <div id="bilan-liste"></div>`;
 }
 async function loadBilan(){
   try{ sortiesCache = await apiGet('sorties'); }
@@ -605,21 +721,21 @@ async function loadBilan(){
   const list = faites.filter(s => Number(s.annee) === bilanYear)
     .sort((a,b) => String(a.date_reelle||a.date||'').localeCompare(String(b.date_reelle||b.date||'')) || String(a.titre).localeCompare(String(b.titre),'fr'));
   const sum = k => list.reduce((t,s) => t + (Number(s[k]) || 0), 0);
-  document.getElementById('bilan-totaux').innerHTML = `<div class="weightbar">
-    <div><div class="label">Sorties</div><div class="big">${list.length}</div></div>
-    <div><div class="label">Distance</div><div class="big">${fmtNum(Math.round(sum('distance_km')*10)/10)} km</div></div>
-    <div><div class="label">Dénivelé +</div><div class="big">${fmtNum(sum('d_plus'))} m</div></div>
-    <div><div class="label">Jours</div><div class="big">${sum('duree_jours')}</div></div></div>`;
+  document.getElementById('bilan-totaux').innerHTML = `<div class="stats">
+    <div class="stat"><div class="stat-n">${list.length}</div><div class="stat-l">Sorties</div></div>
+    <div class="stat"><div class="stat-n">${fmtNum(Math.round(sum('distance_km')*10)/10)} km</div><div class="stat-l">Distance</div></div>
+    <div class="stat"><div class="stat-n">${fmtNum(sum('d_plus'))} m</div><div class="stat-l">Dénivelé +</div></div>
+    <div class="stat"><div class="stat-n">${sum('duree_jours')}</div><div class="stat-l">Jours en montagne</div></div></div>`;
   const box = document.getElementById('bilan-liste');
-  if(!list.length){ box.innerHTML = '<div class="empty">Aucune sortie faite cette année.</div>'; return; }
-  box.innerHTML = list.map(s => `<div class="item-row"><span>${esc(s.titre)} <span class="note">${esc(s.date_reelle || s.date || '')}${s.nb_participants!==''?' · '+esc(s.nb_participants)+' participants':''}${s.notes_bilan?' · '+esc(s.notes_bilan):''}</span></span>
-    <span>${s.distance_km!==''?esc(fmtNum(s.distance_km))+' km':''} ${s.d_plus!==''?'· +'+esc(fmtNum(s.d_plus))+' m':''}</span></div>`).join('');
+  if(!list.length){ box.innerHTML = '<div class="panel"><div class="empty">Aucune sortie faite cette année.</div></div>'; return; }
+  box.innerHTML = '<div class="panel">' + list.map(s => `<div class="item-row"><span>${esc(s.titre)} <span class="note">${esc(s.date_reelle || s.date || '')}${s.nb_participants!==''?' · '+esc(s.nb_participants)+' participants':''}${s.notes_bilan?' · '+esc(s.notes_bilan):''}</span></span>
+    <span>${s.distance_km!==''?esc(fmtNum(s.distance_km))+' km':''} ${s.d_plus!==''?'· +'+esc(fmtNum(s.d_plus))+' m':''}</span></div>`).join('') + '</div>';
 }
 
 // ================= ÉCRAN DÉTAIL SORTIE =================
 function renderSortieDetailScreen(){
   return `
-  <button class="secondary" onclick="currentSortieId=null; render();">Retour aux sorties</button>
+  <div class="backbar"><button class="outline small" onclick="currentSortieId=null; render();">← Retour aux sorties</button></div>
   <div class="panel" id="detail-header"></div>
   <div class="panel" id="detail-bureau" style="display:none;"></div>
   <div class="panel">
@@ -650,10 +766,11 @@ function renderSortieDetailScreen(){
 async function openSortieData(){
   currentSortie = sortiesCache.find(s => String(s.sortie_id) === String(currentSortieId)) || currentSortie;
   const cs = currentSortie;
-  const statTxt = cs.statut === 'faite' ? ' — FAITE' : cs.statut === 'annulee' ? ' — ANNULÉE' : '';
-  document.getElementById('detail-header').innerHTML = `<h3>${esc(cs.titre)}${statTxt}</h3>
-    <div class="sortie-meta">${esc(cs.type_activite)} · ${esc(cs.mode_nuitee)} · ${esc(cs.terrain)} · ${esc(cs.saison)} · Difficulté ${esc(cs.difficulte)} · ${esc(cs.duree_jours)}j${cs.date?' · '+esc(cs.date):''}${cs.organisateur?' · organisateur : '+esc(cs.organisateur):''}</div>
-    ${canManage(cs) && cs.statut !== 'faite' ? `<details style="margin:18px 0 6px;" ${(!cs.type_activite||!cs.terrain||!cs.mode_nuitee||cs.difficulte==='')?'open':''}><summary class="lnk" style="margin-left:0;">Modifier la sortie (date, type, nuitée, terrain…)</summary>
+  document.getElementById('detail-header').innerHTML = `<h2 class="page-title" style="margin-top:0;">${esc(cs.titre)}</h2>
+    <div class="detail-badges">${statutBadge(cs.statut)}${cs.date ? `<span class="chip strong">${esc(fmtDateLong(cs.date))}</span>` : '<span class="chip todo">Date à définir</span>'}${cs.duree_jours ? `<span class="chip">${esc(cs.duree_jours)} jour(s)</span>` : ''}</div>
+    ${metaChips(cs)}
+    ${cs.organisateur ? `<div class="sc-orga">Organisateur : ${esc(cs.organisateur)}</div>` : ''}
+        ${canManage(cs) && cs.statut !== 'faite' ? `<details style="margin:18px 0 6px;" ${(!cs.type_activite||!cs.terrain||!cs.mode_nuitee||cs.difficulte==='')?'open':''}><summary class="lnk" style="margin-left:0;">Modifier la sortie (date, type, nuitée, terrain…)</summary>
       <div class="grid" style="margin:16px 0;">
         <div><label>Date</label><input type="date" id="e_date" value="${esc(cs.date)}"></div>
         <div><label>Type d'activité</label><select id="e_type"><option value=""></option>${opts(TYPES, cs.type_activite)}</select></div>
