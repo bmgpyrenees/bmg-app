@@ -653,7 +653,19 @@ async function openSortieData(){
   const statTxt = cs.statut === 'faite' ? ' — FAITE' : cs.statut === 'annulee' ? ' — ANNULÉE' : '';
   document.getElementById('detail-header').innerHTML = `<h3>${esc(cs.titre)}${statTxt}</h3>
     <div class="sortie-meta">${esc(cs.type_activite)} · ${esc(cs.mode_nuitee)} · ${esc(cs.terrain)} · ${esc(cs.saison)} · Difficulté ${esc(cs.difficulte)} · ${esc(cs.duree_jours)}j${cs.date?' · '+esc(cs.date):''}${cs.organisateur?' · organisateur : '+esc(cs.organisateur):''}</div>
-    ${canManage(cs) && cs.statut !== 'faite' ? `<div class="grid" style="margin:18px 0 6px;max-width:420px;"><div><label>Date de la sortie</label><input type="date" id="d_edit" value="${esc(cs.date)}"></div><div><button class="small" onclick="saveSortieDate()">Enregistrer la date</button></div></div>` : ''}
+    ${canManage(cs) && cs.statut !== 'faite' ? `<details style="margin:18px 0 6px;" ${(!cs.type_activite||!cs.terrain||!cs.mode_nuitee||cs.difficulte==='')?'open':''}><summary class="lnk" style="margin-left:0;">Modifier la sortie (date, type, nuitée, terrain…)</summary>
+      <div class="grid" style="margin:16px 0;">
+        <div><label>Date</label><input type="date" id="e_date" value="${esc(cs.date)}"></div>
+        <div><label>Type d'activité</label><select id="e_type"><option value=""></option>${opts(TYPES, cs.type_activite)}</select></div>
+        <div><label>Mode de nuitée</label><select id="e_nuitee"><option value=""></option>${opts(NUITEES, cs.mode_nuitee)}</select></div>
+        <div><label>Terrain</label><select id="e_terrain"><option value=""></option>${opts(TERRAINS, cs.terrain)}</select></div>
+        <div><label>Saison</label><select id="e_saison">${opts(SAISONS, cs.saison)}</select></div>
+        <div><label>Difficulté</label><select id="e_diff"><option value=""></option>${opts(['1','2','3','4','5'], String(cs.difficulte))}</select></div>
+        <div><label>Durée (j)</label><input type="number" min="1" id="e_duree" value="${esc(cs.duree_jours)}"></div>
+        <div><label>Distance (km)</label><input type="text" id="e_dist" value="${esc(cs.distance_km)}"></div>
+        <div><label>D+ (m)</label><input type="text" id="e_dplus" value="${esc(cs.d_plus)}"></div>
+        <div><button class="small" onclick="saveSortieEdit()">Enregistrer</button></div>
+      </div></details>` : ''}
     ${cs.event_id ? '<div class="sortie-meta">Dans l\'agenda BMG</div>' : (cs.date && cs.statut==='prevue' ? '<div class="sortie-meta">Pas encore dans l\'agenda BMG</div>' : '')}
     ${canManage(cs) && cs.statut !== 'faite' ? `<div style="margin-top:10px;"><span class="lnk" style="margin-left:0;" onclick="setStatutSortie('${cs.statut==='annulee'?'prevue':'annulee'}')">${cs.statut==='annulee'?'rétablir la sortie':'annuler la sortie'}</span><span class="lnk" onclick="deleteSortie()">supprimer</span></div>` : ''}`;
   renderBureauPanel();
@@ -685,6 +697,16 @@ async function closeSortie(){
     nb_participants: document.getElementById('k_nb').value, notes_bilan: document.getElementById('k_notes').value,
   });
   if(r && r.ok === false){ alert(r.error); return; }
+  sortiesCache = await apiGet('sorties');
+  currentSortie = sortiesCache.find(x => String(x.sortie_id) === String(currentSortieId)) || currentSortie;
+  openSortieData();
+}
+async function saveSortieEdit(){
+  const g = id => document.getElementById(id).value;
+  const r = await apiPost('sortie_update', {sortie_id: currentSortieId, date: g('e_date'), type_activite: g('e_type'), mode_nuitee: g('e_nuitee'),
+    terrain: g('e_terrain'), saison: g('e_saison'), difficulte: g('e_diff'), duree_jours: g('e_duree'), distance_km: g('e_dist'), d_plus: g('e_dplus')});
+  if(r && r.ok === false){ alert(r.error); return; }
+  if(r && r.agenda_error) alert('Sortie enregistrée, mais l\'agenda BMG n\'a pas pu être mis à jour : ' + r.agenda_error);
   sortiesCache = await apiGet('sorties');
   currentSortie = sortiesCache.find(x => String(x.sortie_id) === String(currentSortieId)) || currentSortie;
   openSortieData();
