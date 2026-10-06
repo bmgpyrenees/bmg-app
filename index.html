@@ -100,7 +100,9 @@
 
 <div class="nav">
   <button class="navbtn active" data-view="equipement" onclick="setView('equipement')">Équipement</button>
+  <button class="navbtn" data-view="catalogue" onclick="setView('catalogue')">Catalogue</button>
   <button class="navbtn" data-view="sorties" onclick="setView('sorties')">Sorties</button>
+  <button class="navbtn" data-view="bilan" onclick="setView('bilan')">Bilan</button>
 </div>
 
 <div id="content"></div>
@@ -125,6 +127,23 @@ const TECH_POIDS = {
 };
 const TECH_COLLECTIF = ["Corde d'encordement (partagée, ~60m/9mm)", 'Broches à glace (kit)'];
 
+const SAISONS = ['Été','Automne','Hiver','Printemps','Toutes saisons'];
+const TYPES = ['Randonnée','Trek','Bivouac','Alpinisme','Trail','Course à pied','Cyclisme','VTT','Découverte','Évènement','Évènement sportif'];
+const NUITEES = ['Journée','Refuge','Bivouac','Cabane','Mixte'];
+const TERRAINS = ['Sentier','Neige','Glacier','Rocher/Neige technique','Route','Eau'];
+// Saison de la sortie (4 saisons) -> saison utilisée pour composer le kit (Chaude/Froide)
+function saisonEquip(s){
+  if(s === 'Chaude' || s === 'Froide') return s;
+  return ({'Été':'Chaude','Printemps':'Chaude','Automne':'Froide','Hiver':'Froide'})[s] || 'Froide';
+}
+function esc(v){ return String(v === undefined || v === null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function opts(list, sel){ return list.map(o => `<option value="${esc(o)}" ${o===sel?'selected':''}>${esc(o)}</option>`).join(''); }
+function isBureau(){ const m = membresCache.find(x => x.pseudo === currentUser); return !!m && m.role === 'bureau'; }
+function canManage(s){ return isBureau() || (!!s && !!s.organisateur && s.organisateur === currentUser); }
+function fmtNum(n){ return (n === '' || n === null || n === undefined) ? '' : Number(n).toLocaleString('fr-FR'); }
+let catalogueCache = [];
+let sortieFilter = 'prevue';
+let bilanYear = null;
 let currentUser = null;
 let membresCache = [];
 let sortiesCache = [];
@@ -144,7 +163,7 @@ async function apiGet(action, params){
 }
 async function apiPost(action, body){
   body = body || {};
-  const res = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action, ...body})});
+  const res = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action, acteur: currentUser, ...body})});
   return await res.json();
 }
 
@@ -182,6 +201,12 @@ function render(){
     content.innerHTML = renderEquipementScreen();
     updateSubcatOptions();
     loadInventaire();
+  } else if(currentView === 'catalogue'){
+    content.innerHTML = renderCatalogueScreen();
+    loadCatalogue();
+  } else if(currentView === 'bilan'){
+    content.innerHTML = renderBilanScreen();
+    loadBilan();
   } else if(currentView === 'sorties' && !currentSortieId){
     content.innerHTML = renderSortiesListScreen();
     loadSorties();
@@ -317,57 +342,243 @@ async function delInvItem(cat, sub, nom, poids){
 function renderSortiesListScreen(){
   return `
   <div class="panel">
-    <h3>Créer une sortie</h3>
+    <h3>Planifier une sortie</h3>
     <div class="grid" style="margin-bottom:10px;">
+      <div style="grid-column:1/-1;"><label>Partir d'une idée du catalogue (optionnel)</label>
+        <select id="s_cat" onchange="prefillFromCatalogue()"><option value="">— Nouvelle sortie —</option></select></div>
       <div><label>Titre</label><input type="text" id="s_titre"></div>
-      <div><label>Type d'activité</label>
-        <select id="s_activite"><option>Randonnée</option><option>Trek</option><option>Alpinisme</option><option>Trail</option><option>Course à pied</option><option>Cyclisme</option><option>Découverte</option><option>Évènement</option></select>
-      </div>
-      <div><label>Mode de nuitée</label>
-        <select id="s_nuitee"><option value="Journée">Journée</option><option value="Bivouac">Bivouac</option><option value="Refuge">Refuge</option><option value="Cabane">Cabane</option><option value="Mixte">Mixte</option></select>
-      </div>
-      <div><label>Terrain</label>
-        <select id="s_terrain"><option>Sentier</option><option>Neige</option><option>Glacier</option><option value="Rocher/Neige technique">Rocher/Neige technique</option><option>Route</option><option>Eau</option></select>
-      </div>
-      <div><label>Saison</label><select id="s_saison"><option value="Chaude">Chaude</option><option value="Froide">Froide</option></select></div>
-      <div><label>Difficulté</label><select id="s_difficulte"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+      <div><label>Type d'activité</label><select id="s_activite">${opts(TYPES,'Randonnée')}</select></div>
+      <div><label>Mode de nuitée</label><select id="s_nuitee">${opts(NUITEES,'Journée')}</select></div>
+      <div><label>Terrain</label><select id="s_terrain">${opts(TERRAINS,'Sentier')}</select></div>
+      <div><label>Saison</label><select id="s_saison">${opts(SAISONS,'Été')}</select></div>
+      <div><label>Difficulté</label><select id="s_difficulte">${opts(['1','2','3','4','5'],'2')}</select></div>
       <div><label>Durée (j)</label><input type="number" id="s_duree" value="1" min="1"></div>
+      <div><label>Distance (km)</label><input type="text" id="s_dist"></div>
+      <div><label>D+ (m)</label><input type="text" id="s_dplus"></div>
       <div><label>Date</label><input type="date" id="s_date"></div>
-      <div><button onclick="createSortie()">+ Créer la sortie</button></div>
+      <div><button onclick="createSortie()">+ Planifier la sortie</button></div>
     </div>
+    <div class="status">Tu en seras l'organisateur : tu pourras modifier les inscriptions.</div>
   </div>
-  <div class="btnrow"><h3 style="margin:0;">Sorties existantes</h3><button class="secondary small" onclick="loadSorties()">Actualiser</button></div>
+  <div class="btnrow"><h3 style="margin:0;">Sorties</h3>
+    <select id="s_filter" class="mini" onchange="sortieFilter=this.value; loadSorties();">
+      <option value="prevue" ${sortieFilter==='prevue'?'selected':''}>Prévues</option>
+      <option value="faite" ${sortieFilter==='faite'?'selected':''}>Faites</option>
+      <option value="annulee" ${sortieFilter==='annulee'?'selected':''}>Annulées</option>
+      <option value="toutes" ${sortieFilter==='toutes'?'selected':''}>Toutes</option>
+    </select>
+    <button class="secondary small" onclick="loadSorties()">Actualiser</button></div>
   <div id="sorties-cards"></div>`;
 }
 
 async function loadSorties(){
   sortiesCache = await apiGet('sorties');
+  catalogueCache = await apiGet('catalogue');
+  const sel = document.getElementById('s_cat');
+  if(sel && sel.options.length <= 1){
+    catalogueCache.slice().sort((a,b)=>String(a.titre).localeCompare(String(b.titre),'fr')).forEach(c => {
+      const o = document.createElement('option'); o.value = c.catalogue_id; o.textContent = c.titre; sel.appendChild(o);
+    });
+  }
   const container = document.getElementById('sorties-cards');
   if(!container) return;
   container.innerHTML = '';
-  if(!sortiesCache.length){ container.innerHTML = '<div class="empty">Aucune sortie enregistrée.</div>'; return; }
-  sortiesCache.forEach(s => {
+  const list = sortiesCache
+    .filter(s => sortieFilter === 'toutes' || (s.statut || 'prevue') === sortieFilter)
+    .sort((a,b) => String(a.date||'9999').localeCompare(String(b.date||'9999')) || String(a.titre).localeCompare(String(b.titre),'fr'));
+  if(!list.length){ container.innerHTML = '<div class="empty">Aucune sortie dans cette vue.</div>'; return; }
+  list.forEach(s => {
     const div = document.createElement('div');
     div.className = 'sortie-card';
     div.onclick = () => { currentSortieId = s.sortie_id; currentSortie = s; render(); };
-    div.innerHTML = `<h4>${s.titre}</h4><div class="sortie-meta">${s.type_activite} · ${s.mode_nuitee} · ${s.terrain} · ${s.saison} · Difficulté ${s.difficulte} · ${s.duree_jours}j · ${s.date || 'date libre'}</div>`;
+    const stat = s.statut === 'faite' ? ' · FAITE' : s.statut === 'annulee' ? ' · ANNULÉE' : '';
+    div.innerHTML = `<h4>${esc(s.titre)}</h4><div class="sortie-meta">${esc(s.type_activite)} · ${esc(s.mode_nuitee)} · ${esc(s.terrain)} · ${esc(s.saison)} · Difficulté ${esc(s.difficulte)} · ${esc(s.duree_jours)}j · ${esc(s.date || s.annee || 'date libre')}${stat}${s.organisateur?' · org. '+esc(s.organisateur):''}</div>`;
     container.appendChild(div);
   });
 }
+function prefillFromCatalogue(){
+  const id = document.getElementById('s_cat').value;
+  const c = catalogueCache.find(x => String(x.catalogue_id) === id);
+  if(!c) return;
+  const set = (k, v) => { const el = document.getElementById(k); if(el && v !== undefined && v !== null) el.value = v; };
+  set('s_titre', c.titre); set('s_activite', c.type_activite); set('s_nuitee', c.mode_nuitee);
+  set('s_terrain', c.terrain); set('s_saison', c.saison || 'Été'); set('s_difficulte', String(c.difficulte || 2));
+  set('s_duree', c.duree_jours || 1); set('s_dist', c.distance_km); set('s_dplus', c.d_plus);
+}
 async function createSortie(){
   const body = {
-    titre: document.getElementById('s_titre').value,
+    titre: document.getElementById('s_titre').value.trim(),
     type_activite: document.getElementById('s_activite').value,
     mode_nuitee: document.getElementById('s_nuitee').value,
     terrain: document.getElementById('s_terrain').value,
     saison: document.getElementById('s_saison').value,
     difficulte: document.getElementById('s_difficulte').value,
     duree_jours: document.getElementById('s_duree').value,
+    distance_km: document.getElementById('s_dist').value,
+    d_plus: document.getElementById('s_dplus').value,
     date: document.getElementById('s_date').value,
+    catalogue_id: document.getElementById('s_cat').value,
+    organisateur: currentUser,
   };
   if(!body.titre) return;
-  await apiPost('sortie_add', body);
-  loadSorties();
+  const r = await apiPost('sortie_add', body);
+  if(r && r.ok === false){ alert(r.error); return; }
+  sortieFilter = 'prevue';
+  render();
+}
+
+// ================= CATALOGUE =================
+function renderCatalogueScreen(){
+  return `
+  <div class="panel">
+    <h3 id="cat_form_title">Ajouter une idée au catalogue</h3>
+    <div class="grid" style="margin-bottom:10px;">
+      <div><label>Titre</label><input type="text" id="c_titre"></div>
+      <div><label>Type d'activité</label><select id="c_activite">${opts(TYPES,'Randonnée')}</select></div>
+      <div><label>Mode de nuitée</label><select id="c_nuitee">${opts(NUITEES,'Journée')}</select></div>
+      <div><label>Terrain</label><select id="c_terrain">${opts(TERRAINS,'Sentier')}</select></div>
+      <div><label>Saison</label><select id="c_saison">${opts(SAISONS,'Été')}</select></div>
+      <div><label>Difficulté</label><select id="c_difficulte">${opts(['1','2','3','4','5'],'2')}</select></div>
+      <div><label>Durée (j)</label><input type="number" id="c_duree" value="1" min="1"></div>
+      <div><label>Distance (km)</label><input type="text" id="c_dist"></div>
+      <div><label>D+ (m)</label><input type="text" id="c_dplus"></div>
+      <div><label>Topo (lien ou texte)</label><input type="text" id="c_topo"></div>
+      <div><label>Notes</label><input type="text" id="c_notes"></div>
+      <div><button id="c_submit" onclick="saveCatalogue()">+ Ajouter</button></div>
+      <div><button id="c_cancel" class="secondary" onclick="cancelCatalogueEdit()" style="display:none;">Annuler</button></div>
+    </div>
+    <div class="status">Tous les membres peuvent ajouter une idée. Elle sera modifiable par toi ou le bureau.</div>
+  </div>
+  <div class="panel">
+    <div class="btnrow"><h3 style="margin:0;">Idées de sorties</h3><button class="secondary small" onclick="loadCatalogue()">Actualiser</button></div>
+    <div class="grid" style="margin-bottom:20px;">
+      <div><label>Recherche</label><input type="text" id="f_q" oninput="renderCatalogueList()"></div>
+      <div><label>Type</label><select id="f_type" onchange="renderCatalogueList()"><option value="">Tous</option>${opts(TYPES,'')}</select></div>
+      <div><label>Saison</label><select id="f_saison" onchange="renderCatalogueList()"><option value="">Toutes</option>${opts(SAISONS,'')}</select></div>
+      <div><label>Difficulté max</label><select id="f_diff" onchange="renderCatalogueList()"><option value="">—</option>${opts(['1','2','3','4','5'],'')}</select></div>
+    </div>
+    <div id="catalogue-cards"></div>
+  </div>`;
+}
+let catEditId = null;
+async function loadCatalogue(){
+  catalogueCache = await apiGet('catalogue');
+  renderCatalogueList();
+}
+function renderCatalogueList(){
+  const box = document.getElementById('catalogue-cards');
+  if(!box) return;
+  const q = (document.getElementById('f_q').value || '').toLowerCase();
+  const t = document.getElementById('f_type').value;
+  const s = document.getElementById('f_saison').value;
+  const d = Number(document.getElementById('f_diff').value) || 0;
+  const list = catalogueCache.filter(c =>
+    (!q || (String(c.titre) + ' ' + String(c.notes) + ' ' + String(c.organisateur)).toLowerCase().includes(q)) &&
+    (!t || c.type_activite === t) && (!s || c.saison === s) && (!d || Number(c.difficulte) <= d))
+    .sort((a,b) => String(a.titre).localeCompare(String(b.titre),'fr'));
+  if(!list.length){ box.innerHTML = '<div class="empty">Aucune idée ne correspond.</div>'; return; }
+  box.innerHTML = '';
+  list.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'sortie-card';
+    div.style.cursor = 'default';
+    const topo = /^https?:\/\//.test(String(c.topo)) ? `<a href="${esc(c.topo)}" target="_blank" rel="noopener" style="color:#000;">topo</a>` : esc(c.topo);
+    const peutModifier = isBureau() || c.cree_par === currentUser || c.organisateur === currentUser || c.cree_par === 'migration';
+    div.innerHTML = `<h4>${esc(c.titre)}</h4>
+      <div class="sortie-meta">${esc(c.type_activite)} · ${esc(c.mode_nuitee)} · ${esc(c.terrain)} · ${esc(c.saison || 'saison à préciser')} · Difficulté ${esc(c.difficulte)} · ${esc(c.duree_jours)}j${c.distance_km!==''?' · '+esc(fmtNum(c.distance_km))+' km':''}${c.d_plus!==''?' · D+ '+esc(fmtNum(c.d_plus))+' m':''}${c.organisateur?' · idée de '+esc(c.organisateur):''}</div>
+      ${c.topo?`<div class="sortie-meta">${topo}</div>`:''}
+      ${c.notes?`<div class="sortie-meta">${esc(String(c.notes).slice(0,200))}</div>`:''}
+      <div style="margin-top:10px;"><button class="small" onclick="planifierDepuisCatalogue('${esc(c.catalogue_id)}')">Planifier</button>
+      ${peutModifier?`<span class="lnk" onclick="editCatalogue('${esc(c.catalogue_id)}')">modifier</span><span class="lnk" onclick="delCatalogue('${esc(c.catalogue_id)}')">supprimer</span>`:''}</div>`;
+    box.appendChild(div);
+  });
+}
+function planifierDepuisCatalogue(id){
+  currentView = 'sorties'; currentSortieId = null;
+  document.querySelectorAll('.navbtn').forEach(b => b.classList.toggle('active', b.dataset.view === 'sorties'));
+  render();
+  setTimeout(() => { const sel = document.getElementById('s_cat'); if(sel){ sel.value = id; prefillFromCatalogue(); window.scrollTo({top:0, behavior:'smooth'}); } }, 400);
+}
+function catBody(){
+  return {
+    titre: document.getElementById('c_titre').value.trim(),
+    type_activite: document.getElementById('c_activite').value,
+    mode_nuitee: document.getElementById('c_nuitee').value,
+    terrain: document.getElementById('c_terrain').value,
+    saison: document.getElementById('c_saison').value,
+    difficulte: document.getElementById('c_difficulte').value,
+    duree_jours: document.getElementById('c_duree').value,
+    distance_km: document.getElementById('c_dist').value,
+    d_plus: document.getElementById('c_dplus').value,
+    topo: document.getElementById('c_topo').value,
+    notes: document.getElementById('c_notes').value,
+  };
+}
+async function saveCatalogue(){
+  const body = catBody();
+  if(!body.titre) return;
+  const r = catEditId ? await apiPost('catalogue_update', {...body, catalogue_id: catEditId}) : await apiPost('catalogue_add', {...body, organisateur: currentUser});
+  if(r && r.ok === false){ alert(r.error); return; }
+  cancelCatalogueEdit();
+  loadCatalogue();
+}
+function editCatalogue(id){
+  const c = catalogueCache.find(x => String(x.catalogue_id) === id);
+  if(!c) return;
+  catEditId = id;
+  const set = (k, v) => { document.getElementById(k).value = (v === undefined || v === null) ? '' : v; };
+  set('c_titre', c.titre); set('c_activite', c.type_activite); set('c_nuitee', c.mode_nuitee); set('c_terrain', c.terrain);
+  set('c_saison', c.saison || 'Été'); set('c_difficulte', String(c.difficulte || 2)); set('c_duree', c.duree_jours || 1);
+  set('c_dist', c.distance_km); set('c_dplus', c.d_plus); set('c_topo', c.topo); set('c_notes', c.notes);
+  document.getElementById('cat_form_title').textContent = 'Modifier l\'idée';
+  document.getElementById('c_submit').textContent = 'Enregistrer';
+  document.getElementById('c_cancel').style.display = 'inline-block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function cancelCatalogueEdit(){
+  catEditId = null;
+  ['c_titre','c_dist','c_dplus','c_topo','c_notes'].forEach(k => { const el = document.getElementById(k); if(el) el.value = ''; });
+  const t = document.getElementById('cat_form_title'); if(t) t.textContent = 'Ajouter une idée au catalogue';
+  const b = document.getElementById('c_submit'); if(b) b.textContent = '+ Ajouter';
+  const c = document.getElementById('c_cancel'); if(c) c.style.display = 'none';
+}
+async function delCatalogue(id){
+  if(!confirm('Supprimer cette idée du catalogue ?')) return;
+  const r = await apiPost('catalogue_delete', {catalogue_id: id});
+  if(r && r.ok === false){ alert(r.error); return; }
+  loadCatalogue();
+}
+
+// ================= BILAN ANNUEL =================
+function renderBilanScreen(){
+  return `
+  <div class="panel">
+    <div class="btnrow"><h3 style="margin:0;">Bilan annuel</h3>
+      <select id="b_year" class="mini" onchange="bilanYear=Number(this.value); loadBilan();"></select></div>
+    <div id="bilan-totaux"></div>
+    <div id="bilan-liste" style="margin-top:24px;"></div>
+  </div>`;
+}
+async function loadBilan(){
+  sortiesCache = await apiGet('sorties');
+  const faites = sortiesCache.filter(s => s.statut === 'faite');
+  const years = [...new Set(faites.map(s => Number(s.annee)).filter(Boolean))].sort((a,b) => b-a);
+  const cur = new Date().getFullYear();
+  if(!years.includes(cur)) years.unshift(cur);
+  if(!bilanYear) bilanYear = years[0];
+  document.getElementById('b_year').innerHTML = years.map(y => `<option value="${y}" ${y===bilanYear?'selected':''}>${y}</option>`).join('');
+  const list = faites.filter(s => Number(s.annee) === bilanYear)
+    .sort((a,b) => String(a.date_reelle||a.date||'').localeCompare(String(b.date_reelle||b.date||'')) || String(a.titre).localeCompare(String(b.titre),'fr'));
+  const sum = k => list.reduce((t,s) => t + (Number(s[k]) || 0), 0);
+  document.getElementById('bilan-totaux').innerHTML = `<div class="weightbar">
+    <div><div class="label">Sorties</div><div class="big">${list.length}</div></div>
+    <div><div class="label">Distance</div><div class="big">${fmtNum(Math.round(sum('distance_km')*10)/10)} km</div></div>
+    <div><div class="label">Dénivelé +</div><div class="big">${fmtNum(sum('d_plus'))} m</div></div>
+    <div><div class="label">Jours</div><div class="big">${sum('duree_jours')}</div></div></div>`;
+  const box = document.getElementById('bilan-liste');
+  if(!list.length){ box.innerHTML = '<div class="empty">Aucune sortie faite cette année.</div>'; return; }
+  box.innerHTML = list.map(s => `<div class="item-row"><span>${esc(s.titre)} <span class="note">${esc(s.date_reelle || s.date || '')}${s.nb_participants!==''?' · '+esc(s.nb_participants)+' participants':''}${s.notes_bilan?' · '+esc(s.notes_bilan):''}</span></span>
+    <span>${s.distance_km!==''?esc(fmtNum(s.distance_km))+' km':''} ${s.d_plus!==''?'· +'+esc(fmtNum(s.d_plus))+' m':''}</span></div>`).join('');
 }
 
 // ================= ÉCRAN DÉTAIL SORTIE =================
@@ -375,6 +586,7 @@ function renderSortieDetailScreen(){
   return `
   <button class="secondary" onclick="currentSortieId=null; render();">Retour aux sorties</button>
   <div class="panel" id="detail-header"></div>
+  <div class="panel" id="detail-bureau" style="display:none;"></div>
   <div class="panel">
     <h3>Participants</h3>
     <div class="participants-list" id="participants-list"></div>
@@ -402,24 +614,76 @@ function renderSortieDetailScreen(){
 
 async function openSortieData(){
   currentSortie = sortiesCache.find(s => String(s.sortie_id) === String(currentSortieId)) || currentSortie;
-  document.getElementById('detail-header').innerHTML = `<h3>${currentSortie.titre}</h3>
-    <div class="sortie-meta">${currentSortie.type_activite} · ${currentSortie.mode_nuitee} · ${currentSortie.terrain} · ${currentSortie.saison} · Difficulté ${currentSortie.difficulte} · ${currentSortie.duree_jours}j</div>`;
+  const cs = currentSortie;
+  const statTxt = cs.statut === 'faite' ? ' — FAITE' : cs.statut === 'annulee' ? ' — ANNULÉE' : '';
+  document.getElementById('detail-header').innerHTML = `<h3>${esc(cs.titre)}${statTxt}</h3>
+    <div class="sortie-meta">${esc(cs.type_activite)} · ${esc(cs.mode_nuitee)} · ${esc(cs.terrain)} · ${esc(cs.saison)} · Difficulté ${esc(cs.difficulte)} · ${esc(cs.duree_jours)}j${cs.date?' · '+esc(cs.date):''}${cs.organisateur?' · organisateur : '+esc(cs.organisateur):''}</div>
+    ${canManage(cs) && cs.statut !== 'faite' ? `<div style="margin-top:10px;"><span class="lnk" style="margin-left:0;" onclick="setStatutSortie('${cs.statut==='annulee'?'prevue':'annulee'}')">${cs.statut==='annulee'?'rétablir la sortie':'annuler la sortie'}</span><span class="lnk" onclick="deleteSortie()">supprimer</span></div>` : ''}`;
+  renderBureauPanel();
   await refreshParticipants();
   await refreshRepas();
+}
+
+function renderBureauPanel(){
+  const box = document.getElementById('detail-bureau');
+  if(!box) return;
+  if(!isBureau()){ box.style.display = 'none'; return; }
+  const s = currentSortie;
+  box.style.display = 'block';
+  box.innerHTML = `<h3>Bureau : bilan de la sortie</h3>
+    <div class="grid" style="margin-bottom:10px;">
+      <div><label>Date réelle</label><input type="date" id="k_date" value="${esc(s.date_reelle || s.date || '')}"></div>
+      <div><label>Distance (km)</label><input type="text" id="k_dist" value="${esc(s.distance_km)}"></div>
+      <div><label>D+ (m)</label><input type="text" id="k_dplus" value="${esc(s.d_plus)}"></div>
+      <div><label>Nb participants</label><input type="number" id="k_nb" value="${esc(s.nb_participants)}"></div>
+      <div style="grid-column:1/-1;"><label>Notes de bilan</label><input type="text" id="k_notes" value="${esc(s.notes_bilan)}"></div>
+      <div><button onclick="closeSortie()">${s.statut==='faite' ? 'Mettre à jour le bilan' : 'Marquer comme faite'}</button></div>
+    </div>`;
+}
+async function closeSortie(){
+  const r = await apiPost('sortie_statut', {
+    sortie_id: currentSortieId, statut: 'faite',
+    date_reelle: document.getElementById('k_date').value,
+    distance_km: document.getElementById('k_dist').value, d_plus: document.getElementById('k_dplus').value,
+    nb_participants: document.getElementById('k_nb').value, notes_bilan: document.getElementById('k_notes').value,
+  });
+  if(r && r.ok === false){ alert(r.error); return; }
+  sortiesCache = await apiGet('sorties');
+  currentSortie = sortiesCache.find(x => String(x.sortie_id) === String(currentSortieId)) || currentSortie;
+  openSortieData();
+}
+async function setStatutSortie(statut){
+  const r = await apiPost('sortie_statut', {sortie_id: currentSortieId, statut});
+  if(r && r.ok === false){ alert(r.error); return; }
+  sortiesCache = await apiGet('sorties');
+  currentSortie = sortiesCache.find(x => String(x.sortie_id) === String(currentSortieId)) || currentSortie;
+  openSortieData();
+}
+async function deleteSortie(){
+  if(!confirm('Supprimer définitivement cette sortie ?')) return;
+  const r = await apiPost('sortie_delete', {sortie_id: currentSortieId});
+  if(r && r.ok === false){ alert(r.error); return; }
+  currentSortieId = null; render();
 }
 
 async function refreshParticipants(){
   const parts = await apiGet('participants', {sortie_id: currentSortieId});
   const presentSet = new Set(parts.filter(p => String(p.present) === 'true' || p.present === true).map(p => p.pseudo));
   const container = document.getElementById('participants-list');
+  if(!container) return;
   container.innerHTML = '';
+  const droitTous = canManage(currentSortie);
   membresCache.forEach(m => {
     const chip = document.createElement('div');
+    const editable = droitTous || m.pseudo === currentUser;
     chip.className = 'part-chip' + (presentSet.has(m.pseudo) ? ' present' : '');
     chip.textContent = m.pseudo;
+    if(!editable){ chip.style.opacity = '0.55'; chip.style.cursor = 'default'; chip.title = 'Seuls l\'organisateur et le bureau peuvent modifier les autres inscriptions'; }
     chip.onclick = async () => {
+      if(!editable) return;
       const nowPresent = !chip.classList.contains('present');
-      await apiPost('participant_set', {sortie_id: currentSortieId, pseudo: m.pseudo, present: nowPresent});
+      const r = await apiPost('participant_set', {sortie_id: currentSortieId, pseudo: m.pseudo, present: nowPresent});
+      if(r && r.ok === false){ alert(r.error); return; }
       await refreshParticipants();
     };
     container.appendChild(chip);
@@ -593,7 +857,7 @@ async function computeAllKits(){
   const present = parts.filter(p => String(p.present) === 'true' || p.present === true).map(p => p.pseudo);
   kitCache = {};
   const params = {
-    nuitee: currentSortie.mode_nuitee, terrain: currentSortie.terrain, saison: currentSortie.saison,
+    nuitee: currentSortie.mode_nuitee, terrain: currentSortie.terrain, saison: saisonEquip(currentSortie.saison),
     confort: 'Confortable', duree: Number(currentSortie.duree_jours) || 1, difficulte: Number(currentSortie.difficulte) || 1,
     isCourse: ['Trail','Course à pied'].includes(currentSortie.type_activite),
     autonomieRepas: ['Bivouac','Cabane','Mixte'].includes(currentSortie.mode_nuitee),
@@ -625,6 +889,7 @@ async function renderCollectifAndRecap(present){
   existingAttrib.forEach(a => attribMap[a.objet] = a.pseudo_porteur);
 
   const container = document.getElementById('collectif-list');
+  if(!container) return;
   container.innerHTML = '';
   if(!groupCollectifItems.length){ container.innerHTML = '<div class="empty">Aucun matériel collectif détecté pour cette sortie.</div>'; }
   groupCollectifItems.forEach(item => {
@@ -663,6 +928,7 @@ async function autoAssign(){
 
 function renderRecap(present, groupCollectifItems, attribMap){
   const container = document.getElementById('recap-list');
+  if(!container) return;
   container.innerHTML = '';
   let grandTotal = 0;
   present.forEach(pseudo => {
@@ -693,6 +959,7 @@ function renderRecap(present, groupCollectifItems, attribMap){
 async function refreshRepas(){
   const repas = await apiGet('repas', {sortie_id: currentSortieId});
   const container = document.getElementById('repas-list');
+  if(!container) return;
   container.innerHTML = '';
   const byJour = {};
   repas.forEach(r => { (byJour[r.jour] = byJour[r.jour] || []).push(r); });
