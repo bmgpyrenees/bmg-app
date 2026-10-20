@@ -2,15 +2,22 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
-<title>BMG — Sorties &amp; Équipement</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="BMG">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>BMG Pyrénées Club</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@300&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#F3F4F0; --card:#fff; --line:#D5D8CF; --ink:#111; --muted:#4F5557;
+    --bg:#F3F4F0; --card:#fff; --line:#D5D8CF; --ink:#0A1E1E; --muted:#4F5557; --nav-h:64px;
     --green:#5FAD56; --green-dark:#2E6B2A; --green-soft:#E7F2E4; --warn:#B3261E;
   }
   *{box-sizing:border-box;}
@@ -53,8 +60,8 @@
   .btnrow h3{margin:0;}
 
   /* ---- Formulaires ---- */
-  label{display:block; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:6px;}
-  select, input[type=number], input[type=text], input[type=date]{width:100%; padding:10px 12px; border:1px solid #8E948E; border-radius:3px; background:#fff; color:var(--ink); font-family:inherit; font-size:15px; -webkit-appearance:none; appearance:none;}
+  label{display:block; font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px;}
+  select, input[type=number], input[type=text], input[type=date], input[type=time], input[type=url], input[type=search]{width:100%; padding:10px 12px; border:1px solid #8E948E; border-radius:3px; background:#fff; color:var(--ink); font-family:inherit; font-size:15px; -webkit-appearance:none; appearance:none;}
   select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='black'/></svg>"); background-repeat:no-repeat; background-position:right 12px center; padding-right:34px; cursor:pointer;}
   select:focus, input:focus{outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(95,173,86,.4);}
   select.mini{width:auto; padding:7px 32px 7px 10px; font-size:14px;}
@@ -116,6 +123,10 @@
   .participants-list{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;}
   .part-chip{padding:8px 14px; border:1px solid #8E948E; font-size:14px; font-weight:500; cursor:pointer; background:#fff; color:var(--ink); border-radius:999px;}
   .part-chip.present{background:var(--green); border-color:var(--green-dark); font-weight:700; color:#0B2A08;}
+  .part-chip:hover{background:var(--green-soft); color:var(--ink);}
+  .part-chip.present:hover{background:var(--green-dark); color:#fff;}
+  .part-chip:disabled:hover{background:#fff; color:var(--ink);}
+  .part-chip.present:disabled:hover{background:var(--green); color:#0B2A08;}
   .recap-card{background:var(--card); border:1px solid var(--line); padding:18px 20px; margin-bottom:16px;}
   .recap-card h4{display:flex; justify-content:space-between; align-items:baseline; font-size:17px; padding-bottom:8px; border-bottom:2px solid var(--green); margin-bottom:6px;}
   .collectif-row{display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:14px; padding:8px 0; border-bottom:1px solid #ECEEE8;}
@@ -131,15 +142,132 @@
   .stat-n{font-size:32px; font-weight:700; line-height:1.1;}
   .stat-l{font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
 
+  .toast{position:fixed; left:50%; bottom:calc(28px + var(--nav-offset, 0px)); transform:translate(-50%,20px); background:var(--ink); color:#fff; padding:13px 22px; border-left:5px solid var(--green); font-size:15px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:50; max-width:90vw;}
+  .toast.show{opacity:1; transform:translate(-50%,0);}
+
+
+  /* ---- En-tête : identité ---- */
+  .userbtn{display:inline-flex; align-items:center; gap:10px; background:none; border:1px solid var(--line); color:var(--ink); padding:5px 14px 5px 5px; border-radius:999px; font-weight:600; font-size:14px;}
+  .userbtn:hover{background:var(--green-soft); color:var(--ink);}
+  .avatar{width:32px; height:32px; border-radius:50%; background:var(--green); color:#0B2A08; display:inline-flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; letter-spacing:.02em;}
+  .who-hint{font-size:14px; color:var(--muted); margin:10px 0 0;}
+
+  /* ---- Barre d'onglets du bas (téléphone) ---- */
+  .bottomnav{display:none; position:fixed; left:0; right:0; bottom:0; z-index:30; background:#fff; border-top:1px solid var(--ink); padding:6px 8px calc(6px + env(safe-area-inset-bottom)); justify-content:space-around;}
+  .bottomnav button{flex:1; background:none; border:none; color:var(--muted); display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px; font-size:12px; font-weight:600; border-radius:10px;}
+  .bottomnav button svg{width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+  .bottomnav button.active{color:var(--green-dark); background:var(--green-soft);}
+  .bottomnav button:hover{background:var(--green-soft); color:var(--ink);}
+
+  /* ---- Mise en page ---- */
+  .full{grid-column:1/-1;}
+  .section{margin-top:44px;}
+  .lead{font-size:15px; color:var(--muted); margin:-6px 0 18px; max-width:620px;}
+  .check{display:flex; align-items:center; gap:10px; font-size:15px; font-weight:500; color:var(--ink); cursor:pointer;}
+  .check input{width:20px; height:20px; accent-color:var(--green-dark);}
+  input[type=file]{font-family:inherit; font-size:14px; max-width:100%;}
+  .toolbar{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+  .count{font-size:14px; color:var(--muted); font-weight:500;}
+
+  /* ---- Cartes de sortie : inscription ---- */
+  .sc-side{display:flex; flex-direction:column; align-items:flex-end; gap:6px;}
+  .badge.moi{background:var(--green); color:#0B2A08; border:1px solid var(--green-dark);}
+  .sc-people{font-size:13px; color:var(--muted);}
+
+  /* ---- Lieu de départ ---- */
+  .lieu-row{display:flex; gap:8px;}
+  .lieu-row input{flex:1;}
+  .lieu-res{display:flex; flex-direction:column; gap:4px; margin-top:6px;}
+  .lieu-res button{background:#fff; color:var(--ink); border:1px solid var(--line); text-align:left; font-weight:500;}
+  .lieu-res button:hover{background:var(--green-soft); color:var(--ink);}
+  .lieu-ok{font-size:13px; color:var(--green-dark); margin-top:6px; font-weight:600;}
+
+  /* ---- Fiche sortie ---- */
+  .hero-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;}
+  button.go{font-size:16px; padding:14px 22px;}
+  button.go.on{background:#fff; color:var(--green-dark); border:2px solid var(--green);}
+  button.go.on:hover{background:var(--green-soft);}
+  .quiet-links{margin-top:14px;}
+  .quiet-links .lnk:first-child{margin-left:0;}
+
+  /* ---- Météo ---- */
+  .wx{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px;}
+  .wx-day{border:1px solid var(--line); border-top:4px solid var(--green); padding:12px 14px; background:#FBFCFA;}
+  .wx-day.bad{border-top-color:#D9B44A;}
+  .wx-day.storm{border-top-color:var(--warn);}
+  .wx-date{font-size:13px; font-weight:700; text-transform:capitalize;}
+  .wx-ico{font-size:30px; line-height:1.2; margin:4px 0;}
+  .wx-lbl{font-size:14px; font-weight:600;}
+  .wx-t{font-size:22px; font-weight:700; margin:4px 0;}
+  .wx-t span{font-size:15px; color:var(--muted); font-weight:500;}
+  .wx-l{font-size:13px; color:var(--muted);}
+  .wx-src{font-size:12px; color:var(--muted); margin-top:10px;}
+
+  /* ---- Trace : carte + profil ---- */
+  .map{height:320px; border:1px solid var(--line); background:#E9ECE4; z-index:1;}
+  .profile{margin-top:12px; touch-action:none; user-select:none; -webkit-user-select:none;}
+  .profile svg{width:100%; height:auto; display:block;}
+  .profile-read{font-size:14px; font-weight:600; min-height:21px; margin-top:4px;}
+  .tstats{display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin:14px 0;}
+  .tstat{border-left:4px solid var(--green); padding:2px 0 2px 10px;}
+  .tstat b{display:block; font-size:20px;}
+  .tstat span{font-size:13px; color:var(--muted);}
+  details.manage{margin-top:18px; border-top:1px solid var(--line); padding-top:14px;}
+  details.manage summary{cursor:pointer; font-weight:600; font-size:14px;}
+
+  /* ---- Covoiturage ---- */
+  .cars{display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(260px,1fr));}
+  .car{border:1px solid var(--line); border-left:5px solid var(--green); padding:14px 16px; background:#FBFCFA;}
+  .car.full{border-left-color:#9AA19A;}
+  .car.mine{border-left-color:var(--green-dark); background:var(--green-soft);}
+  .car-head{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+  .car-who{font-weight:700; font-size:16px;}
+  .car-from{font-size:14px; color:var(--muted); margin-top:2px;}
+  .car-free{font-size:13px; font-weight:700; color:var(--green-dark); white-space:nowrap;}
+  .car.full .car-free{color:var(--muted);}
+  .seats{display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 4px;}
+  .seat{font-size:13px; padding:4px 10px; border-radius:999px; background:#fff; border:1px solid var(--ink);}
+  .seat.empty{border:1px dashed #8E948E; color:var(--muted);}
+  .car-note{font-size:13px; color:var(--muted); margin-top:6px;}
+  .car-actions{display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-top:12px;}
+  .car-actions .lnk, .toolbar .lnk{margin-left:0;}
+  .covoit-sum{font-size:14px; margin:0 0 14px;}
+  .covoit-sum b{font-weight:700;}
+  .without{margin-top:14px; font-size:14px;}
+
+  /* ---- Accessibilité ---- */
+  :focus-visible{outline:3px solid var(--green-dark); outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important; scroll-behavior:auto !important;} }
+
+  @media (max-width: 700px){
+    :root{--nav-offset:calc(var(--nav-h) + env(safe-area-inset-bottom));}
+    body.logged{padding-bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));}
+    body.logged .bottomnav{display:flex;}
+    body.logged #subnav{display:none !important;}
+    #btn-inv{display:none !important;}
+    .top-right{width:auto;}
+    .userbtn .uname{max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+    button{min-height:44px;}
+    button.small{min-height:38px;}
+    .bottomnav button{min-height:0;}
+    .map{height:260px;}
+    .grid.two{grid-template-columns:1fr 1fr;}
+    .wx{grid-template-columns:1fr 1fr;}
+    .sc-side{flex-direction:row; width:100%; justify-content:flex-start; align-items:center;}
+    .idea-card{flex-direction:column; align-items:stretch; gap:12px;}
+    .idea-actions{justify-content:flex-start;}
+    .sortie-card .sc-body{flex:1 1 calc(100% - 80px);}
+    .section{margin-top:36px;}
+  }
+
   @media (max-width: 600px){
     .top-in{padding:10px 16px;}
     .wrap{padding:4px 16px 56px;}
-    .logo{height:48px;}
+    .logo{height:40px;}
     h2.page-title{font-size:28px;}
     .tab{padding:10px 12px; font-size:14px;}
     .sortie-card, .idea-card{flex-wrap:wrap; gap:12px;}
     .sc-date{flex:0 0 58px;}
-    .top-right{width:100%; justify-content:space-between; gap:8px;}
     .user{font-size:13px;}
     .grid, .cats{grid-template-columns:1fr;}
     .weightbar .big{font-size:28px;}
@@ -152,7 +280,7 @@
 <header class="top"><div class="top-in">
   <div class="brand"><img class="logo" src="data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIKCSB2aWV3Qm94PSI2Ni4zIDczLjIgNDY2LjcgMTUyLjkiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDYwMCAzMDA7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZW5hYmxlLWJhY2tncm91bmQ6bmV3ICAgIDt9Cgkuc3Qxe2ZpbGw6IzBBMUUxRTt9Cjwvc3R5bGU+CjxnIGlkPSJfMDJfVEVYVEUiPgoJPGc+CgkJPGcgaWQ9IkJNRzBfOF8iPgoJCQk8ZyBjbGFzcz0ic3QwIj4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik05OS43LDk4LjF2MC4xYzQuNSwwLjgsOC4zLDMuOCw4LjMsMTAuMmMwLDkuMS01LjgsMTIuNy0xNC43LDEyLjdINzJWNzguMmgyMC44YzguOSwwLDEzLjYsMy41LDEzLjYsMTAuOAoJCQkJCUMxMDYuNCw5NC4zLDEwMy4zLDk2LjksOTkuNyw5OC4xeiBNOTAuMiw5NS42YzMsMCw1LjQtMC43LDUuNC00LjNjMC0zLjUtMi40LTQuMy01LjQtNC4zaC03LjR2OC41SDkwLjJ6IE04Mi44LDExMi4zaDcuNwoJCQkJCWM0LjUsMCw2LjgtMS4xLDYuOC01LjFjMC00LTIuMy01LTYuOC01aC03LjdWMTEyLjN6Ii8+CgkJCTwvZz4KCQkJPGcgY2xhc3M9InN0MCI+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMTIwLjcsNzguMnY0Mi45aC0xMC44Vjc4LjJIMTIwLjd6Ii8+CgkJCTwvZz4KCQkJPGcgY2xhc3M9InN0MCI+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMTMzLjgsODdoLTEyLjV2LTguOEgxNTdWODdoLTEyLjR2MzQuMWgtMTAuOFY4N3oiLz4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0xNzYuMywxMjIuMWMtMTMsMC0xNy45LTUuOC0xNy45LTE2LjRWNzguMmgxMC44djI3LjRjMCw1LjYsMi40LDcuNiw3LjEsNy42czcuMS0yLDcuMS03LjZWNzguMmgxMC44djI3LjQKCQkJCQlDMTk0LjIsMTE2LjMsMTg5LjMsMTIyLjEsMTc2LjMsMTIyLjF6Ii8+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMTk3LjUsNzguMmgyMC4yYzkuNSwwLDE1LjMsNC40LDE1LjMsMTIuNWMwLDUuNy0zLjQsOS4zLTguNywxMC41djAuMWMxMC43LDEuOSw2LjgsMTguNSw5LjMsMTkuMnYwLjYKCQkJCQloLTExLjJjLTIuMS0xLjgsMS44LTE0LjktNy40LTE0LjloLTYuN3YxNC45aC0xMC44Vjc4LjJ6IE0yMDguMyw5Ny40aDcuM2M0LjMsMCw2LjYtMS42LDYuNi01LjJzLTIuMy01LjItNi42LTUuMmgtNy4zVjk3LjR6IgoJCQkJCS8+CgkJCTwvZz4KCQkJPGcgY2xhc3M9InN0MCI+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMjY0LjcsOTQuN3Y4LjhIMjQ2djguOGgyMi4xdjguOGgtMzIuOVY3OC4yaDMyLjVWODdIMjQ2djcuNkgyNjQuN3oiLz4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0zMDQuOCwxMDguNWMwLDguMi02LjIsMTMuNi0xNywxMy42Yy0xMS4yLDAtMTkuNi01LjUtMTkuNi0xNS4xSDI3OWMwLDQuNiw0LDYuMiw4LjgsNi4yCgkJCQkJYzQsMCw2LjItMS42LDYuMi0zLjdjMC0zLjQtNC42LTQuMi0xMC43LTZjLTcuNC0yLjItMTMuOS01LjMtMTMuOS0xMy4zYzAtOS40LDcuMy0xMywxNi42LTEzYzEwLDAsMTcuOSw1LjMsMTguMiwxNGgtMTAuOAoJCQkJCWMtMC41LTMuMi0zLjItNS4yLTcuNC01LjJjLTMuMiwwLTUuOCwxLTUuOCwzLjRjMCwyLjYsMi43LDMuNSw4LjEsNUMyOTYuNCw5Ni43LDMwNC44LDk5LjMsMzA0LjgsMTA4LjV6Ii8+CgkJCTwvZz4KCQkJPGcgY2xhc3M9InN0MCI+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMzA1LjMsMTE2LjZjMC0zLjEsMi4yLTUuMSw1LjEtNS4xYzIuOCwwLDUuMSwyLDUuMSw1LjFjMCwzLjEtMi4zLDUuMS01LjEsNS4xCgkJCQkJQzMwNy41LDEyMS42LDMwNS4zLDExOS43LDMwNS4zLDExNi42eiIvPgoJCQk8L2c+CgkJCTxnIGNsYXNzPSJzdDAiPgoJCQkJPHBhdGggY2xhc3M9InN0MSIgZD0iTTcyLDEyOC4yaDEzLjJsOC44LDI3LjRoMC4xbDguOC0yNy40aDEzLjJ2NDIuOWgtMTAuMnYtMjYuN2gtMC4xbC04LDI2LjdoLTcuNmwtOC0yNi43aC0wLjF2MjYuN0g3MlYxMjguMgoJCQkJCXoiLz4KCQkJPC9nPgoJCQk8ZyBjbGFzcz0ic3QwIj4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0xMTguMiwxNDkuNmMwLTEyLjksNy42LTIyLjQsMjEuMi0yMi40YzEzLjUsMCwyMS4yLDkuNSwyMS4yLDIyLjRjMCwxMy03LjcsMjIuNC0yMS4yLDIyLjQKCQkJCQlDMTI1LjgsMTcyLjEsMTE4LjIsMTYyLjYsMTE4LjIsMTQ5LjZ6IE0xNDkuOCwxNDkuNmMwLTcuNC0yLjYtMTMuNi0xMC40LTEzLjZjLTcuOSwwLTEwLjQsNi4xLTEwLjQsMTMuNgoJCQkJCWMwLDcuNSwyLjYsMTMuNiwxMC40LDEzLjZDMTQ3LjIsMTYzLjMsMTQ5LjgsMTU3LjEsMTQ5LjgsMTQ5LjZ6Ii8+CgkJCTwvZz4KCQkJPGcgY2xhc3M9InN0MCI+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMTYyLjQsMTI4LjJoMTAuOGwxNSwyNS41aDAuMXYtMjUuNWgxMC44djQyLjloLTEwLjhsLTE1LTI1LjVoLTAuMXYyNS41aC0xMC44VjEyOC4yeiIvPgoJCQk8L2c+CgkJCTxnIGNsYXNzPSJzdDAiPgoJCQkJPHBhdGggY2xhc3M9InN0MSIgZD0iTTIxMi4yLDEzN2gtMTIuNXYtOC44aDM1Ljd2OC44SDIyM3YzNC4xaC0xMC44VjEzN3oiLz4KCQkJPC9nPgoJCQk8ZyBjbGFzcz0ic3QwIj4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0yNDIuMiwxNjIuMmwtMi44LDguOWgtMTAuOGwxNS41LTQyLjlIMjU1bDE1LjUsNDIuOWgtMTAuOGwtMi44LTguOUgyNDIuMnogTTI1NC41LDE1NGwtNC45LTE1LjhoLTAuMQoJCQkJCWwtNC45LDE1LjhIMjU0LjV6Ii8+CgkJCTwvZz4KCQkJPGcgY2xhc3M9InN0MCI+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMjg3LjIsMTM2LjFjLTcuMSwwLTkuOCw1LjUtOS44LDEzLjZjMCw4LjEsMi43LDEzLjYsMTAuMiwxMy42YzUsMCw4LjUtMyw4LjYtNy4xaC04LjJ2LTcuOGgxOS4zdjIyLjgKCQkJCQloLTcuN2wtMS4xLTUuNWgtMC4xYy0yLDMuOS02LjEsNi40LTEyLjQsNi40Yy0xMi4yLDAtMTkuNC05LjUtMTkuNC0yMi40YzAtMTIuOSw3LjMtMjIuNCwyMC44LTIyLjRjMTEuOCwwLDE4LjMsNywxOS4zLDE1LjIKCQkJCQloLTEwLjhDMjk1LjIsMTM5LjUsMjkzLjIsMTM2LjEsMjg3LjIsMTM2LjF6Ii8+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMzEwLjIsMTI4LjJIMzIxbDE1LDI1LjVoMC4xdi0yNS41aDEwLjh2NDIuOWgtMTAuOGwtMTUtMjUuNUgzMjF2MjUuNWgtMTAuOFYxMjguMnoiLz4KCQkJPC9nPgoJCQk8ZyBjbGFzcz0ic3QwIj4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0zNzkuOSwxNDQuN3Y4LjhoLTE4Ljd2OC44aDIyLjF2OC44aC0zMi45di00Mi45aDMyLjV2OC44aC0yMS43djcuNkgzNzkuOXoiLz4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik00MTkuOSwxNTguNWMwLDguMi02LjIsMTMuNi0xNywxMy42Yy0xMS4yLDAtMTkuNi01LjUtMTkuNi0xNS4xaDEwLjhjMCw0LjYsNCw2LjIsOC44LDYuMgoJCQkJCWM0LDAsNi4yLTEuNiw2LjItMy43YzAtMy40LTQuNi00LjItMTAuNy02Yy03LjQtMi4yLTEzLjktNS4zLTEzLjktMTMuM2MwLTkuNCw3LjMtMTMsMTYuNi0xM2MxMCwwLDE3LjksNS4zLDE4LjIsMTRoLTEwLjgKCQkJCQljLTAuNS0zLjItMy4yLTUuMi03LjQtNS4yYy0zLjIsMC01LjgsMS01LjgsMy40YzAsMi42LDIuNywzLjUsOC4xLDVDNDExLjYsMTQ2LjcsNDE5LjksMTQ5LjMsNDE5LjksMTU4LjV6Ii8+CgkJCTwvZz4KCQkJPGcgY2xhc3M9InN0MCI+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNNDIwLjQsMTY2LjZjMC0zLjEsMi4yLTUuMSw1LjEtNS4xYzIuOCwwLDUuMSwyLDUuMSw1LjFjMCwzLjEtMi4zLDUuMS01LjEsNS4xCgkJCQkJQzQyMi43LDE3MS43LDQyMC40LDE2OS43LDQyMC40LDE2Ni42eiIvPgoJCQk8L2c+CgkJCTxnIGNsYXNzPSJzdDAiPgoJCQkJPHBhdGggY2xhc3M9InN0MSIgZD0iTTkwLjksMTg2LjFjLTcuMSwwLTkuOCw1LjUtOS44LDEzLjZjMCw4LjEsMi43LDEzLjYsMTAuMiwxMy42YzUsMCw4LjUtMyw4LjYtNy4xaC04LjJ2LTcuOEgxMTF2MjIuOGgtNy43CgkJCQkJbC0xLjEtNS41aC0wLjFjLTIsMy45LTYuMSw2LjQtMTIuNCw2LjRjLTEyLjIsMC0xOS40LTkuNS0xOS40LTIyLjRjMC0xMi45LDcuMy0yMi40LDIwLjgtMjIuNGMxMS44LDAsMTguMyw3LDE5LjMsMTUuMkg5OS42CgkJCQkJQzk4LjgsMTg5LjUsOTYuOCwxODYuMSw5MC45LDE4Ni4xeiIvPgoJCQkJPHBhdGggY2xhc3M9InN0MSIgZD0iTTExMi4xLDE5OS42YzAtMTIuOSw3LjYtMjIuNCwyMS4yLTIyLjRjMTMuNSwwLDIxLjIsOS41LDIxLjIsMjIuNGMwLDEzLTcuNywyMi40LTIxLjIsMjIuNAoJCQkJCUMxMTkuNywyMjIuMSwxMTIuMSwyMTIuNiwxMTIuMSwxOTkuNnogTTE0My44LDE5OS42YzAtNy40LTIuNi0xMy42LTEwLjQtMTMuNmMtNy45LDAtMTAuNCw2LjEtMTAuNCwxMy42CgkJCQkJYzAsNy41LDIuNiwxMy42LDEwLjQsMTMuNkMxNDEuMSwyMTMuMywxNDMuOCwyMDcuMSwxNDMuOCwxOTkuNnoiLz4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0xNzQsMjIyLjFjLTEzLDAtMTcuOS01LjgtMTcuOS0xNi40di0yNy40aDEwLjh2MjcuNGMwLDUuNiwyLjQsNy42LDcuMSw3LjZzNy4xLTIsNy4xLTcuNnYtMjcuNEgxOTJ2MjcuNAoJCQkJCUMxOTIsMjE2LjMsMTg3LDIyMi4xLDE3NCwyMjIuMXoiLz4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0xOTUuMiwxNzguMmgyMC4yYzkuNSwwLDE1LjMsNC40LDE1LjMsMTIuNWMwLDUuNy0zLjQsOS4zLTguNywxMC41djAuMWMxMC43LDEuOSw2LjgsMTguNSw5LjMsMTkuMnYwLjYKCQkJCQloLTExLjJjLTIuMS0xLjgsMS44LTE0LjktNy40LTE0LjlIMjA2djE0LjloLTEwLjhWMTc4LjJ6IE0yMDYsMTk3LjRoNy4zYzQuMywwLDYuNi0xLjYsNi42LTUuMnMtMi4zLTUuMi02LjYtNS4ySDIwNlYxOTcuNHoiLz4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0yNTIsMTg2LjFjLTcuMSwwLTkuOCw1LjUtOS44LDEzLjZjMCw4LjEsMi43LDEzLjYsMTAuMiwxMy42YzUsMCw4LjUtMyw4LjYtNy4xaC04LjJ2LTcuOGgxOS4zdjIyLjhoLTcuNwoJCQkJCWwtMS4xLTUuNWgtMC4xYy0yLDMuOS02LjEsNi40LTEyLjQsNi40Yy0xMi4yLDAtMTkuNC05LjUtMTkuNC0yMi40YzAtMTIuOSw3LjMtMjIuNCwyMC44LTIyLjRjMTEuOCwwLDE4LjMsNywxOS4zLDE1LjJoLTEwLjgKCQkJCQlDMjU5LjksMTg5LjUsMjU4LDE4Ni4xLDI1MiwxODYuMXoiLz4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0yODUuNiwyMTIuMmwtMi44LDguOUgyNzJsMTUuNS00Mi45aDEwLjhsMTUuNSw0Mi45SDMwM2wtMi44LTguOUgyODUuNnogTTI5Ny45LDIwNGwtNC45LTE1LjhoLTAuMQoJCQkJCUwyODgsMjA0SDI5Ny45eiIvPgoJCQkJPHBhdGggY2xhc3M9InN0MSIgZD0iTTMxNC41LDE3OC4yaDEwLjhsMTUsMjUuNWgwLjF2LTI1LjVoMTAuOHY0Mi45aC0xMC44bC0xNS0yNS41aC0wLjF2MjUuNWgtMTAuOFYxNzguMnoiLz4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0zNTQuNywxNzguMmgxOWMxMS45LDAsMTkuMSw3LjcsMTkuMSwyMS41YzAsMTMuOC02LjYsMjEuNC0xOC41LDIxLjRoLTE5LjZWMTc4LjJ6IE0zNjUuNSwyMTIuM2g3LjEKCQkJCQljNi43LDAsOS40LTQuOCw5LjQtMTIuNnMtMi43LTEyLjctOS40LTEyLjdoLTcuMVYyMTIuM3oiLz4KCQkJCTxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik00MDUuNiwxNzguMnY0Mi45aC0xMC44di00Mi45SDQwNS42eiIvPgoJCQkJPHBhdGggY2xhc3M9InN0MSIgZD0iTTQwOS4xLDE3OC4yaDEwLjhsMTUsMjUuNWgwLjF2LTI1LjVoMTAuOHY0Mi45SDQzNWwtMTUtMjUuNWgtMC4xdjI1LjVoLTEwLjhWMTc4LjJ6Ii8+CgkJCTwvZz4KCQkJPGcgY2xhc3M9InN0MCI+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNNDc4LjMsMTk0Ljd2OC44aC0xOC43djguOGgyMi4xdjguOGgtMzIuOXYtNDIuOWgzMi41djguOGgtMjEuN3Y3LjZINDc4LjN6Ii8+CgkJCQk8cGF0aCBjbGFzcz0ic3QxIiBkPSJNNTE4LjMsMjA4LjVjMCw4LjItNi4yLDEzLjYtMTcsMTMuNmMtMTEuMiwwLTE5LjYtNS41LTE5LjYtMTUuMWgxMC44YzAsNC42LDQsNi4yLDguOCw2LjIKCQkJCQljNCwwLDYuMi0xLjYsNi4yLTMuN2MwLTMuNC00LjYtNC4yLTEwLjctNmMtNy40LTIuMi0xMy45LTUuMy0xMy45LTEzLjNjMC05LjQsNy4zLTEzLDE2LjYtMTNjMTAsMCwxNy45LDUuMywxOC4yLDE0aC0xMC44CgkJCQkJYy0wLjUtMy4yLTMuMi01LjItNy40LTUuMmMtMy4yLDAtNS44LDEtNS44LDMuNGMwLDIuNiwyLjcsMy41LDguMSw1QzUwOS45LDE5Ni43LDUxOC4zLDE5OS4zLDUxOC4zLDIwOC41eiIvPgoJCQk8L2c+CgkJCTxnIGNsYXNzPSJzdDAiPgoJCQkJPHBhdGggY2xhc3M9InN0MSIgZD0iTTUxOC44LDIxNi42YzAtMy4xLDIuMi01LjEsNS4xLTUuMWMyLjgsMCw1LjEsMiw1LjEsNS4xYzAsMy4xLTIuMyw1LjEtNS4xLDUuMQoJCQkJCUM1MjEuMSwyMjEuNyw1MTguOCwyMTkuNyw1MTguOCwyMTYuNnoiLz4KCQkJPC9nPgoJCTwvZz4KCTwvZz4KPC9nPgo8L3N2Zz4=" alt="BMG Pyrénées Club"></div>
   <div class="top-right">
-    <div class="user" id="switch-user-row" style="display:none;"><b id="current-user-label"></b> · <a href="#" onclick="showIdentityPanel(); return false;">changer d'identité</a></div>
+    <button class="userbtn" id="switch-user-row" style="display:none;" onclick="showIdentityPanel()" title="Changer d'identité"><span class="avatar" id="user-initials"></span><span class="uname" id="current-user-label"></span></button>
     <button class="outline small" id="btn-inv" onclick="setView('equipement')" style="display:none;">Mon inventaire</button>
   </div>
 </div></header>
@@ -163,15 +291,16 @@
 <div id="app" style="display:none;">
 
 <div class="panel" id="identity-panel">
+  <h3>Qui es-tu ?</h3>
   <div class="grid">
-    <div><label>Qui es-tu ?</label><select id="who-select"></select></div>
-    <div><button onclick="setIdentity()">Valider</button></div>
+    <div><label for="who-select">Ton nom dans le club</label><select id="who-select"></select></div>
+    <div><button onclick="setIdentity()">Continuer</button></div>
   </div>
+  <p class="who-hint">L'app s'en souviendra sur cet appareil.</p>
 </div>
 
 <div class="tabs" id="subnav" style="display:none;">
-  <button class="tab active" data-view="sorties" onclick="setView('sorties')">Planifier une sortie</button>
-  <button class="tab" data-view="catalogue" onclick="setView('catalogue')">Idées de sorties</button>
+  <button class="tab active" data-view="sorties" onclick="setView('sorties')">Sorties</button>
   <button class="tab" data-view="bilan" onclick="setView('bilan')">Bilan</button>
 </div>
 
@@ -179,6 +308,12 @@
 
 </div>
 </div>
+
+<nav class="bottomnav" id="bottomnav" aria-label="Navigation">
+  <button data-view="sorties" onclick="setView('sorties')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20 9 7l4 7 3-4 6 10z"/><path d="m7.4 10 1.6 1.4 1.7-1.4"/></svg>Sorties</button>
+  <button data-view="bilan" onclick="setView('bilan')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>Bilan</button>
+  <button data-view="equipement" onclick="setView('equipement')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 21h10a2 2 0 0 0 2-2v-8a6 6 0 0 0-6-6h-2a6 6 0 0 0-6 6v8a2 2 0 0 0 2 2z"/><path d="M9 5V3h6v2M8 14h8v4H8z"/></svg>Mon sac</button>
+</nav>
 
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbzA0dUcNliIBSHST4GAIQGuep5KYQSJS9QGYBjXffRbuwAWYO-E_XGHpL6GX2aCCy4n/exec';
@@ -206,6 +341,16 @@ const TERRAINS = ['Sentier','Neige','Glacier','Rocher/Neige technique','Route','
 function saisonEquip(s){
   if(s === 'Chaude' || s === 'Froide') return s;
   return ({'Été':'Chaude','Printemps':'Chaude','Automne':'Froide','Hiver':'Froide'})[s] || 'Froide';
+}
+let toastTimer = null;
+function toast(msg){
+  let t = document.getElementById('toast');
+  if(!t){ t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; t.setAttribute('role','status'); document.body.appendChild(t); }
+  t.textContent = msg;
+  void t.offsetWidth;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
 }
 function esc(v){ return String(v === undefined || v === null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function opts(list, sel){ return list.map(o => `<option value="${esc(o)}" ${o===sel?'selected':''}>${esc(o)}</option>`).join(''); }
@@ -270,7 +415,7 @@ function showLoadError(id, e){
 async function apiPost(action, body){
   body = body || {};
   try{
-    const res = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action, acteur: currentUser, ...body})});
+    const res = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action, acteur: currentUser, app_url: location.origin + location.pathname, ...body})});
     const data = await res.json();
     if(data && data.error && data.ok === undefined) return {ok:false, error: data.error + ' — le script déployé n\'est probablement pas à jour (Déployer > Gérer les déploiements > Nouvelle version).'};
     return data;
@@ -280,39 +425,82 @@ async function apiPost(action, body){
 }
 
 // ================= Boot =================
+const STORE_USER = 'bmg_user';
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k, v){ try{ v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); }catch(e){} }
+function initiales(n){ return String(n || '').split(/\s+/).filter(Boolean).slice(0,2).map(x => x[0].toUpperCase()).join(''); }
+function hashSortie(){ const m = /^#s=(.+)$/.exec(location.hash); return m ? decodeURIComponent(m[1]) : null; }
+
 async function boot(){
   try{ membresCache = await apiGet('membres'); }
-  catch(e){ document.getElementById('whoami-status').textContent = 'Impossible de contacter le backend.'; return; }
-  document.getElementById('who-select').innerHTML = membresCache.map(m => `<option value="${m.pseudo}">${m.pseudo}</option>`).join('');
-  document.getElementById('whoami-status').textContent = 'Connecté à la base BMG.';
+  catch(e){ document.getElementById('whoami-status').textContent = 'Impossible de contacter le backend. Vérifie ta connexion puis recharge la page.'; return; }
+  document.getElementById('who-select').innerHTML = membresCache.map(m => `<option value="${esc(m.pseudo)}">${esc(m.pseudo)}</option>`).join('');
+  document.getElementById('whoami-status').textContent = '';
   document.getElementById('app').style.display = 'block';
+  const memo = lsGet(STORE_USER);
+  if(memo && membresCache.some(m => m.pseudo === memo)){
+    document.getElementById('who-select').value = memo;
+    setIdentity();
+  }
 }
 function setIdentity(){
   currentUser = document.getElementById('who-select').value;
+  lsSet(STORE_USER, currentUser);
+  document.body.classList.add('logged');
   document.getElementById('identity-panel').style.display = 'none';
-  document.getElementById('whoami-status').textContent = '';
-  document.getElementById('switch-user-row').style.display = 'block';
+  document.getElementById('switch-user-row').style.display = 'inline-flex';
   document.getElementById('current-user-label').textContent = currentUser;
+  document.getElementById('user-initials').textContent = initiales(currentUser);
   document.getElementById('btn-inv').style.display = 'inline-block';
-  setView(currentView);
+  const id = hashSortie();
+  if(id){ currentView = 'sorties'; syncNav(); currentSortieId = id; render(); }
+  else setView(currentView);
 }
 function showIdentityPanel(){
   document.getElementById('who-select').value = currentUser;
   document.getElementById('identity-panel').style.display = 'block';
+  window.scrollTo({top:0});
 }
 let lastClubView = 'sorties';
+function syncNav(){
+  const inv = currentView === 'equipement';
+  document.getElementById('subnav').style.display = inv ? 'none' : 'flex';
+  document.querySelectorAll('#subnav .tab').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
+  document.querySelectorAll('#bottomnav button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
+  const bi = document.getElementById('btn-inv'); if(bi) bi.classList.toggle('active', inv);
+}
+function clearHash(){ if(location.hash) history.replaceState(null, '', location.pathname + location.search); }
 function setView(view){
   currentView = view;
   currentSortieId = null;
-  const inv = view === 'equipement';
-  if(!inv) lastClubView = view;
-  document.getElementById('subnav').style.display = inv ? 'none' : 'flex';
-  document.querySelectorAll('#subnav .tab').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-  const bi = document.getElementById('btn-inv'); if(bi) bi.classList.toggle('active', inv);
+  clearHash();
+  if(view !== 'equipement') lastClubView = view;
+  syncNav();
   render();
   window.scrollTo({top:0});
 }
 function leaveInventory(){ setView(lastClubView); }
+// Ouvre la fiche d'une sortie (adresse partageable, bouton retour du téléphone)
+function openSortie(id){
+  if(hashSortie() === String(id)){ currentSortieId = id; render(); return; }
+  location.hash = 's=' + encodeURIComponent(id);
+}
+function backToList(){
+  if(history.length > 1 && window._cameFromList){ history.back(); return; }
+  currentSortieId = null; clearHash(); render(); window.scrollTo({top:0});
+}
+window.addEventListener('hashchange', () => {
+  if(!currentUser) return;
+  const id = hashSortie();
+  if(id){
+    window._cameFromList = !currentSortieId;
+    currentView = 'sorties'; syncNav();
+    currentSortieId = id; render(); window.scrollTo({top:0});
+  } else if(currentSortieId){
+    window._cameFromList = false;
+    currentSortieId = null; render();
+  }
+});
 
 // ================= Rendu principal =================
 function render(){
@@ -321,18 +509,15 @@ function render(){
     content.innerHTML = renderEquipementScreen();
     updateSubcatOptions();
     loadInventaire();
-  } else if(currentView === 'catalogue'){
-    content.innerHTML = renderCatalogueScreen();
-    loadCatalogue();
   } else if(currentView === 'bilan'){
     content.innerHTML = renderBilanScreen();
     loadBilan();
-  } else if(currentView === 'sorties' && !currentSortieId){
-    content.innerHTML = renderSortiesListScreen();
-    loadSorties();
-  } else if(currentView === 'sorties' && currentSortieId){
+  } else if(currentSortieId){
     content.innerHTML = renderSortieDetailScreen();
     openSortieData();
+  } else {
+    content.innerHTML = renderSortiesListScreen();
+    loadSorties();
   }
 }
 
@@ -461,43 +646,201 @@ async function delInvItem(cat, sub, nom, poids){
   loadInventaire();
 }
 
-// ================= ÉCRAN LISTE DES SORTIES =================
+// ================= OUTILS : lieu de départ, traces GPX =================
+const gpxPending = {};   // fichier GPX choisi dans un formulaire, par préfixe (s = sortie, c = itinéraire, t = fiche)
+const gpxCache = {};     // traces déjà téléchargées, par identifiant Drive
+
+// Champ « lieu de départ » avec recherche (Open-Meteo, sans clé) : remplit lieu + lat/lon
+function lieuPicker(p, lieu, lat, lon){
+  const ok = (lat !== '' && lat !== undefined && lat !== null) ? `<div class="lieu-ok" id="${p}_lieu_ok">Point de départ enregistré</div>` : `<div class="lieu-ok" id="${p}_lieu_ok"></div>`;
+  return `<label for="${p}_lieu">Lieu de départ</label>
+    <div class="lieu-row"><input type="search" id="${p}_lieu" value="${esc(lieu)}" placeholder="ex. Lac d'Orédon, Gavarnie…" onkeydown="if(event.key==='Enter'){event.preventDefault();chercherLieu('${p}');}" oninput="document.getElementById('${p}_lat').value='';document.getElementById('${p}_lon').value='';document.getElementById('${p}_lieu_ok').textContent='';">
+      <button type="button" class="outline small" onclick="chercherLieu('${p}')">Chercher</button></div>
+    <input type="hidden" id="${p}_lat" value="${esc(lat)}"><input type="hidden" id="${p}_lon" value="${esc(lon)}">
+    <div class="lieu-res" id="${p}_lieu_res"></div>${ok}`;
+}
+async function chercherLieu(p){
+  const q = document.getElementById(p + '_lieu').value.trim();
+  const box = document.getElementById(p + '_lieu_res');
+  if(q.length < 2){ box.innerHTML = ''; return; }
+  box.innerHTML = '<div class="status">Recherche…</div>';
+  try{
+    const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?count=6&language=fr&format=json&name=' + encodeURIComponent(q));
+    const d = await r.json();
+    const res = (d.results || []);
+    if(!res.length){ box.innerHTML = '<div class="status">Aucun lieu trouvé. Essaie le nom du village ou du parking.</div>'; return; }
+    window['_lieux_' + p] = res;
+    box.innerHTML = res.map((x, i) => `<button type="button" onclick="choisirLieu('${p}', ${i})">${esc(x.name)}<span class="note">${esc([x.admin2 || x.admin1, x.country].filter(Boolean).join(', '))}${x.elevation ? ', ' + Math.round(x.elevation) + ' m' : ''}</span></button>`).join('');
+  }catch(e){ box.innerHTML = '<div class="status">Recherche impossible hors connexion.</div>'; }
+}
+function choisirLieu(p, i){
+  const x = (window['_lieux_' + p] || [])[i]; if(!x) return;
+  document.getElementById(p + '_lieu').value = x.name;
+  document.getElementById(p + '_lat').value = Math.round(x.latitude * 1e5) / 1e5;
+  document.getElementById(p + '_lon').value = Math.round(x.longitude * 1e5) / 1e5;
+  document.getElementById(p + '_lieu_res').innerHTML = '';
+  document.getElementById(p + '_lieu_ok').textContent = 'Point de départ enregistré';
+}
+function lieuValues(p){
+  const g = k => { const el = document.getElementById(p + '_' + k); return el ? el.value : ''; };
+  return { lieu: g('lieu').trim(), lat: g('lat'), lon: g('lon') };
+}
+
+// Lecture d'un fichier GPX : points, distance, dénivelés, point de départ
+function haversine(a, b){
+  const R = 6371, r = Math.PI / 180;
+  const dLat = (b[0] - a[0]) * r, dLon = (b[1] - a[1]) * r;
+  const x = Math.sin(dLat/2) ** 2 + Math.cos(a[0]*r) * Math.cos(b[0]*r) * Math.sin(dLon/2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+function parseGpx(text){
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if(doc.getElementsByTagName('parsererror').length) throw new Error('fichier illisible');
+  let nodes = Array.from(doc.getElementsByTagName('trkpt'));
+  if(nodes.length < 2) nodes = Array.from(doc.getElementsByTagName('rtept'));
+  if(nodes.length < 2) throw new Error('aucune trace trouvée dans ce fichier');
+  const pts = [];
+  let dist = 0, dplus = 0, dminus = 0, ref = null, eMin = Infinity, eMax = -Infinity;
+  nodes.forEach(n => {
+    const lat = parseFloat(n.getAttribute('lat')), lon = parseFloat(n.getAttribute('lon'));
+    if(isNaN(lat) || isNaN(lon)) return;
+    const eleN = n.getElementsByTagName('ele')[0];
+    const ele = eleN ? parseFloat(eleN.textContent) : null;
+    if(pts.length) dist += haversine(pts[pts.length-1], [lat, lon]);
+    if(ele !== null && !isNaN(ele)){
+      eMin = Math.min(eMin, ele); eMax = Math.max(eMax, ele);
+      if(ref === null) ref = ele;
+      else if(Math.abs(ele - ref) >= 5){ if(ele > ref) dplus += ele - ref; else dminus += ref - ele; ref = ele; }
+    }
+    pts.push([lat, lon, (ele === null || isNaN(ele)) ? null : ele, dist]);
+  });
+  const nameN = doc.querySelector('trk > name, metadata > name, rte > name');
+  return { pts, km: Math.round(dist * 10) / 10, dplus: Math.round(dplus), dminus: Math.round(dminus),
+    eleMin: isFinite(eMin) ? Math.round(eMin) : null, eleMax: isFinite(eMax) ? Math.round(eMax) : null,
+    start: pts[0], nom: nameN ? nameN.textContent.trim() : '' };
+}
+// GPX allégé (3000 points max) pour l'envoi : même tracé, fichier léger
+function gpxCompact(t, nom){
+  const k = Math.max(1, Math.ceil(t.pts.length / 3000));
+  const pts = t.pts.filter((p, i) => i % k === 0 || i === t.pts.length - 1);
+  const x = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="BMG Pyrénées Club" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>' + x(nom || t.nom || 'Trace') + '</name><trkseg>' +
+    pts.map(p => `<trkpt lat="${p[0].toFixed(6)}" lon="${p[1].toFixed(6)}">${p[2] === null ? '' : '<ele>' + p[2].toFixed(1) + '</ele>'}</trkpt>`).join('') + '</trkseg></trk></gpx>';
+}
+async function onGpxPicked(p){
+  const input = document.getElementById(p + '_gpx');
+  const info = document.getElementById(p + '_gpx_info');
+  const f = input.files && input.files[0];
+  delete gpxPending[p];
+  if(!f){ info.textContent = ''; return; }
+  try{
+    const t = parseGpx(await f.text());
+    gpxPending[p] = { t, nom: f.name.replace(/\.gpx$/i, '') };
+    info.textContent = `${fmtNum(t.km)} km, D+ ${fmtNum(t.dplus)} m${t.eleMax !== null ? ', point haut ' + fmtNum(t.eleMax) + ' m' : ''}. Distance, D+ et point de départ remplis depuis la trace.`;
+    const set = (k, v) => { const el = document.getElementById(p + '_' + k); if(el && v !== null && v !== undefined) el.value = v; };
+    set('dist', t.km); set('dplus', t.dplus);
+    set('lat', Math.round(t.start[0] * 1e5) / 1e5); set('lon', Math.round(t.start[1] * 1e5) / 1e5);
+    const ok = document.getElementById(p + '_lieu_ok'); if(ok) ok.textContent = 'Point de départ pris dans la trace';
+  }catch(e){
+    input.value = '';
+    info.innerHTML = `<span style="color:var(--warn)">Trace refusée : ${esc(e.message)}. Choisis un fichier .gpx exporté depuis ton appli (Visorando, Strava, Suunto, IGN…).</span>`;
+  }
+}
+// Envoie la trace choisie dans un formulaire vers la sortie ou l'itinéraire indiqué
+async function envoyerGpx(p, cible, id){
+  const g = gpxPending[p]; if(!g) return {ok:true};
+  const r = await apiPost('gpx_upload', { cible, id, nom: g.nom, contenu: gpxCompact(g.t, g.nom), distance_km: g.t.km, d_plus: g.t.dplus,
+    lat: Math.round(g.t.start[0] * 1e5) / 1e5, lon: Math.round(g.t.start[1] * 1e5) / 1e5, remplacer_stats: true });
+  delete gpxPending[p];
+  return r;
+}
+function traceFields(p, lien){
+  return `<div class="full"><label for="${p}_trace_lien">Lien vers la trace (Visorando, Strava, IGN…)</label><input type="url" id="${p}_trace_lien" value="${esc(lien)}" placeholder="https://"></div>
+    <div class="full"><label for="${p}_gpx">Fichier GPX (optionnel)</label><input type="file" id="${p}_gpx" accept=".gpx,application/gpx+xml" onchange="onGpxPicked('${p}')"><div class="status" id="${p}_gpx_info"></div></div>`;
+}
+
+// ================= ÉCRAN SORTIES (sorties du club + itinéraires) =================
 function renderSortiesListScreen(){
   return `
-  <h2 class="page-title">Planifier une sortie</h2>
-  <p class="page-sub">Crée une sortie à partir d'une idée ou librement, inscris les participants et prépare les sacs.</p>
+  <h2 class="page-title">Sorties</h2>
   <div class="actionbar"><button id="btn-new-sortie" onclick="toggleSortieForm()">+ Nouvelle sortie</button></div>
   <div class="panel" id="sortie-form" style="display:none;">
     <h3>Nouvelle sortie</h3>
     <div class="grid" style="margin-bottom:10px;">
-      <div style="grid-column:1/-1;"><label>Partir d'une idée de sortie (optionnel)</label>
-        <select id="s_cat" onchange="prefillFromCatalogue()"><option value="">— Sortie libre —</option></select></div>
-      <div><label>Titre</label><input type="text" id="s_titre"></div>
-      <div><label>Date</label><input type="date" id="s_date"></div>
-      <div><label>Durée (jours)</label><input type="number" id="s_duree" value="1" min="1"></div>
-      <div><label>Type d'activité</label><select id="s_activite">${opts(TYPES,'Randonnée')}</select></div>
-      <div><label>Mode de nuitée</label><select id="s_nuitee">${opts(NUITEES,'Journée')}</select></div>
-      <div><label>Terrain</label><select id="s_terrain">${opts(TERRAINS,'Sentier')}</select></div>
-      <div><label>Saison</label><select id="s_saison">${opts(SAISONS,'Été')}</select></div>
-      <div><label>Difficulté</label><select id="s_difficulte">${opts(['1','2','3','4','5'],'2')}</select></div>
-      <div><label>Distance (km)</label><input type="text" id="s_dist"></div>
-      <div><label>D+ (m)</label><input type="text" id="s_dplus"></div>
+      <div class="full"><label for="s_cat">Partir d'un itinéraire du club</label>
+        <select id="s_cat" onchange="prefillFromCatalogue()"><option value="">Aucun, sortie libre</option></select>
+        <div class="status" id="s_cat_info" style="margin-top:6px;"></div></div>
+      <div class="full"><label for="s_titre">Titre</label><input type="text" id="s_titre"></div>
+      <div><label for="s_date">Date</label><input type="date" id="s_date"></div>
+      <div><label for="s_duree">Durée (jours)</label><input type="number" id="s_duree" value="1" min="1"></div>
+      <div><label for="s_activite">Type d'activité</label><select id="s_activite">${opts(TYPES,'Randonnée')}</select></div>
+      <div><label for="s_nuitee">Nuitée</label><select id="s_nuitee">${opts(NUITEES,'Journée')}</select></div>
+      <div><label for="s_terrain">Terrain</label><select id="s_terrain">${opts(TERRAINS,'Sentier')}</select></div>
+      <div><label for="s_saison">Saison</label><select id="s_saison">${opts(SAISONS,'Été')}</select></div>
+      <div><label for="s_difficulte">Difficulté</label><select id="s_difficulte">${opts(['1','2','3','4','5'],'2')}</select></div>
+      <div><label for="s_dist">Distance (km)</label><input type="text" id="s_dist" inputmode="decimal"></div>
+      <div><label for="s_dplus">D+ (m)</label><input type="text" id="s_dplus" inputmode="numeric"></div>
+      <div class="full">${lieuPicker('s', '', '', '')}</div>
+      ${traceFields('s', '')}
+      <div class="full"><label class="check"><input type="checkbox" id="s_notifier" checked> Prévenir tous les membres par email</label></div>
     </div>
     <div class="btnrow" style="margin-top:18px;">
-      <button onclick="createSortie()">Planifier la sortie</button>
+      <button id="s_submit" onclick="createSortie()">Planifier la sortie</button>
       <button class="secondary" onclick="toggleSortieForm(false)">Annuler</button>
     </div>
-    <div class="status">Tu en seras l'organisateur : tu pourras modifier les inscriptions.</div>
+    <div class="status">Tu en seras l'organisateur et tu seras inscrit d'office.</div>
   </div>
   <div class="btnrow"><h3>Sorties du club</h3>
-    <select id="s_filter" class="mini" onchange="sortieFilter=this.value; loadSorties();">
+    <select id="s_filter" class="mini" aria-label="Afficher" onchange="sortieFilter=this.value; renderSortiesCards();">
       <option value="prevue" ${sortieFilter==='prevue'?'selected':''}>À venir</option>
+      <option value="miennes" ${sortieFilter==='miennes'?'selected':''}>Mes inscriptions</option>
       <option value="faite" ${sortieFilter==='faite'?'selected':''}>Faites</option>
       <option value="annulee" ${sortieFilter==='annulee'?'selected':''}>Annulées</option>
       <option value="toutes" ${sortieFilter==='toutes'?'selected':''}>Toutes</option>
-    </select>
-    <button class="secondary small" onclick="loadSorties()">Actualiser</button></div>
-  <div id="sorties-cards"></div>`;
+    </select></div>
+  <div id="sorties-cards"><div class="status">Chargement des sorties…</div></div>
+
+  <div class="section">
+    <div class="btnrow"><h3>Itinéraires du club</h3><button class="outline small" id="btn-new-idee" onclick="toggleIdeeForm()">+ Proposer un itinéraire</button></div>
+    <p class="lead">Les parcours repérés par les membres. Choisis-en un et planifie la sortie en un clic.</p>
+    ${renderIdeeForm()}
+    <div class="panel" style="padding:16px 18px;">
+      <div class="grid two">
+        <div class="full"><label for="f_q">Rechercher</label><input type="search" id="f_q" placeholder="Nom, massif, membre…" oninput="renderCatalogueList()"></div>
+        <div><label for="f_type">Type</label><select id="f_type" onchange="renderCatalogueList()"><option value="">Tous</option>${opts(TYPES,'')}</select></div>
+        <div><label for="f_saison">Saison</label><select id="f_saison" onchange="renderCatalogueList()"><option value="">Toutes</option>${opts(SAISONS,'')}</select></div>
+        <div><label for="f_diff">Difficulté max</label><select id="f_diff" onchange="renderCatalogueList()"><option value="">Toutes</option>${opts(['1','2','3','4','5'],'')}</select></div>
+        <div><label class="check" style="margin-top:22px;"><input type="checkbox" id="f_gpx" onchange="renderCatalogueList()"> Avec trace GPX</label></div>
+      </div>
+    </div>
+    <div class="count" id="catalogue-count" style="margin:0 0 10px;"></div>
+    <div id="catalogue-cards"><div class="status">Chargement des itinéraires…</div></div>
+  </div>`;
+}
+function renderIdeeForm(){
+  return `<div class="panel" id="idee-form" style="display:none;">
+    <h3 id="cat_form_title">Proposer un itinéraire</h3>
+    <div class="grid" style="margin-bottom:10px;">
+      <div class="full"><label for="c_titre">Nom de l'itinéraire</label><input type="text" id="c_titre"></div>
+      <div><label for="c_activite">Type d'activité</label><select id="c_activite">${opts(TYPES,'Randonnée')}</select></div>
+      <div><label for="c_nuitee">Nuitée</label><select id="c_nuitee">${opts(NUITEES,'Journée')}</select></div>
+      <div><label for="c_terrain">Terrain</label><select id="c_terrain">${opts(TERRAINS,'Sentier')}</select></div>
+      <div><label for="c_saison">Saison</label><select id="c_saison">${opts(SAISONS,'Été')}</select></div>
+      <div><label for="c_difficulte">Difficulté</label><select id="c_difficulte">${opts(['1','2','3','4','5'],'2')}</select></div>
+      <div><label for="c_duree">Durée (jours)</label><input type="number" id="c_duree" value="1" min="1"></div>
+      <div><label for="c_dist">Distance (km)</label><input type="text" id="c_dist" inputmode="decimal"></div>
+      <div><label for="c_dplus">D+ (m)</label><input type="text" id="c_dplus" inputmode="numeric"></div>
+      <div class="full" id="c_lieu_wrap">${lieuPicker('c', '', '', '')}</div>
+      ${traceFields('c', '')}
+      <div class="full"><label for="c_topo">Topo (lien ou texte)</label><input type="text" id="c_topo"></div>
+      <div class="full"><label for="c_notes">Notes</label><input type="text" id="c_notes"></div>
+    </div>
+    <div class="btnrow" style="margin-top:18px;">
+      <button id="c_submit" onclick="saveCatalogue()">Ajouter l'itinéraire</button>
+      <button class="secondary" onclick="cancelCatalogueEdit()">Annuler</button>
+    </div>
+    <div class="status">Tous les membres peuvent proposer un itinéraire. Il reste modifiable par toi ou par le bureau.</div>
+  </div>`;
 }
 function toggleSortieForm(show){
   const f = document.getElementById('sortie-form'); if(!f) return;
@@ -506,104 +849,6 @@ function toggleSortieForm(show){
   document.getElementById('btn-new-sortie').style.display = vis ? 'none' : 'inline-block';
   if(vis) f.scrollIntoView({behavior:'smooth', block:'start'});
 }
-
-async function loadSorties(){
-  try{ sortiesCache = await apiGet('sorties'); }
-  catch(e){ showLoadError('sorties-cards', e); return; }
-  try{ catalogueCache = await apiGet('catalogue'); } catch(e){ catalogueCache = []; }
-  const sel = document.getElementById('s_cat');
-  if(sel && sel.options.length <= 1){
-    catalogueCache.slice().sort((a,b)=>String(a.titre).localeCompare(String(b.titre),'fr')).forEach(c => {
-      const o = document.createElement('option'); o.value = c.catalogue_id; o.textContent = c.titre; sel.appendChild(o);
-    });
-  }
-  const container = document.getElementById('sorties-cards');
-  if(!container) return;
-  container.innerHTML = '';
-  const list = sortiesCache
-    .filter(s => sortieFilter === 'toutes' || (s.statut || 'prevue') === sortieFilter)
-    .sort((a,b) => String(a.date||'9999').localeCompare(String(b.date||'9999')) || String(a.titre).localeCompare(String(b.titre),'fr'));
-  if(!list.length){ container.innerHTML = '<div class="panel"><div class="empty">Aucune sortie dans cette vue.' + (sortieFilter==='prevue' ? ' Clique sur « + Nouvelle sortie » pour en planifier une.' : '') + '</div></div>'; return; }
-  list.forEach(s => {
-    const div = document.createElement('div');
-    div.className = 'sortie-card';
-    div.onclick = () => { currentSortieId = s.sortie_id; currentSortie = s; render(); };
-    div.innerHTML = `${dateBlock(s)}
-      <div class="sc-body"><h4>${esc(s.titre)}</h4>${metaChips(s)}${s.organisateur ? `<div class="sc-orga">Organisateur : ${esc(s.organisateur)}</div>` : ''}</div>
-      <div>${statutBadge(s.statut)}</div>`;
-    container.appendChild(div);
-  });
-}
-function prefillFromCatalogue(){
-  const id = document.getElementById('s_cat').value;
-  const c = catalogueCache.find(x => String(x.catalogue_id) === id);
-  if(!c) return;
-  const set = (k, v) => { const el = document.getElementById(k); if(el && v !== undefined && v !== null) el.value = v; };
-  set('s_titre', c.titre); set('s_activite', c.type_activite); set('s_nuitee', c.mode_nuitee);
-  set('s_terrain', c.terrain); set('s_saison', c.saison || 'Été'); set('s_difficulte', String(c.difficulte || 2));
-  set('s_duree', c.duree_jours || 1); set('s_dist', c.distance_km); set('s_dplus', c.d_plus);
-}
-async function createSortie(){
-  const body = {
-    titre: document.getElementById('s_titre').value.trim(),
-    type_activite: document.getElementById('s_activite').value,
-    mode_nuitee: document.getElementById('s_nuitee').value,
-    terrain: document.getElementById('s_terrain').value,
-    saison: document.getElementById('s_saison').value,
-    difficulte: document.getElementById('s_difficulte').value,
-    duree_jours: document.getElementById('s_duree').value,
-    distance_km: document.getElementById('s_dist').value,
-    d_plus: document.getElementById('s_dplus').value,
-    date: document.getElementById('s_date').value,
-    catalogue_id: document.getElementById('s_cat').value,
-    organisateur: currentUser,
-  };
-  if(!body.titre) return;
-  const r = await apiPost('sortie_add', body);
-  if(r && r.ok === false){ alert(r.error); return; }
-  if(r && r.agenda_error) alert('Sortie créée, mais l\'agenda BMG n\'a pas pu être mis à jour : ' + r.agenda_error);
-  sortieFilter = 'prevue';
-  render();
-}
-
-// ================= CATALOGUE =================
-function renderCatalogueScreen(){
-  return `
-  <h2 class="page-title">Idées de sorties</h2>
-  <p class="page-sub">Les itinéraires repérés par le club. Propose une idée, ou planifie-en une en un clic.</p>
-  <div class="actionbar"><button id="btn-new-idee" onclick="toggleIdeeForm()">+ Proposer une idée</button></div>
-  <div class="panel" id="idee-form" style="display:none;">
-    <h3 id="cat_form_title">Proposer une idée de sortie</h3>
-    <div class="grid" style="margin-bottom:10px;">
-      <div><label>Titre</label><input type="text" id="c_titre"></div>
-      <div><label>Type d'activité</label><select id="c_activite">${opts(TYPES,'Randonnée')}</select></div>
-      <div><label>Mode de nuitée</label><select id="c_nuitee">${opts(NUITEES,'Journée')}</select></div>
-      <div><label>Terrain</label><select id="c_terrain">${opts(TERRAINS,'Sentier')}</select></div>
-      <div><label>Saison</label><select id="c_saison">${opts(SAISONS,'Été')}</select></div>
-      <div><label>Difficulté</label><select id="c_difficulte">${opts(['1','2','3','4','5'],'2')}</select></div>
-      <div><label>Durée (jours)</label><input type="number" id="c_duree" value="1" min="1"></div>
-      <div><label>Distance (km)</label><input type="text" id="c_dist"></div>
-      <div><label>D+ (m)</label><input type="text" id="c_dplus"></div>
-      <div><label>Topo (lien ou texte)</label><input type="text" id="c_topo"></div>
-      <div><label>Notes</label><input type="text" id="c_notes"></div>
-    </div>
-    <div class="btnrow" style="margin-top:18px;">
-      <button id="c_submit" onclick="saveCatalogue()">Ajouter l'idée</button>
-      <button class="secondary" onclick="cancelCatalogueEdit()">Annuler</button>
-    </div>
-    <div class="status">Tous les membres peuvent proposer une idée. Elle reste modifiable par toi ou par le bureau.</div>
-  </div>
-  <div class="btnrow"><h3>Toutes les idées</h3><button class="secondary small" onclick="loadCatalogue()">Actualiser</button></div>
-  <div class="panel" style="padding:18px 20px;">
-    <div class="grid">
-      <div><label>Recherche</label><input type="text" id="f_q" oninput="renderCatalogueList()"></div>
-      <div><label>Type</label><select id="f_type" onchange="renderCatalogueList()"><option value="">Tous</option>${opts(TYPES,'')}</select></div>
-      <div><label>Saison</label><select id="f_saison" onchange="renderCatalogueList()"><option value="">Toutes</option>${opts(SAISONS,'')}</select></div>
-      <div><label>Difficulté max</label><select id="f_diff" onchange="renderCatalogueList()"><option value="">—</option>${opts(['1','2','3','4','5'],'')}</select></div>
-    </div>
-  </div>
-  <div id="catalogue-cards"></div>`;
-}
 function toggleIdeeForm(show){
   const f = document.getElementById('idee-form'); if(!f) return;
   const vis = (show === undefined) ? f.style.display === 'none' : show;
@@ -611,6 +856,97 @@ function toggleIdeeForm(show){
   document.getElementById('btn-new-idee').style.display = vis ? 'none' : 'inline-block';
   if(vis) f.scrollIntoView({behavior:'smooth', block:'start'});
 }
+
+async function loadSorties(){
+  const [rs, rc] = await Promise.allSettled([apiGet('sorties'), apiGet('catalogue')]);
+  if(rs.status === 'fulfilled'){ sortiesCache = rs.value; renderSortiesCards(); }
+  else showLoadError('sorties-cards', rs.reason);
+  if(rc.status === 'fulfilled'){
+    catalogueCache = rc.value;
+    const sel = document.getElementById('s_cat');
+    if(sel){
+      sel.innerHTML = '<option value="">Aucun, sortie libre</option>' + catalogueCache.slice()
+        .sort((a,b)=>String(a.titre).localeCompare(String(b.titre),'fr'))
+        .map(c => `<option value="${esc(c.catalogue_id)}">${esc(c.titre)}</option>`).join('');
+    }
+    renderCatalogueList();
+  } else showLoadError('catalogue-cards', rc.reason);
+}
+function inscrit(s){ return Array.isArray(s.inscrits) && s.inscrits.includes(currentUser); }
+function renderSortiesCards(){
+  const container = document.getElementById('sorties-cards');
+  if(!container) return;
+  const auj = new Date().toISOString().slice(0,10);
+  const list = sortiesCache
+    .filter(s => {
+      const st = s.statut || 'prevue';
+      if(sortieFilter === 'toutes') return true;
+      if(sortieFilter === 'miennes') return st === 'prevue' && inscrit(s);
+      return st === sortieFilter;
+    })
+    .sort((a,b) => {
+      const k = x => String(x.date || x.date_reelle || '9999');
+      return sortieFilter === 'faite' ? k(b).localeCompare(k(a)) : k(a).localeCompare(k(b)) || String(a.titre).localeCompare(String(b.titre),'fr');
+    });
+  if(!list.length){
+    const msg = { prevue: 'Aucune sortie à venir. Planifie la prochaine avec « + Nouvelle sortie » ou depuis un itinéraire ci-dessous.',
+      miennes: 'Tu n\'es inscrit à aucune sortie à venir.', faite: 'Aucune sortie faite pour l\'instant.', annulee: 'Aucune sortie annulée.', toutes: 'Aucune sortie.' }[sortieFilter];
+    container.innerHTML = `<div class="panel"><div class="empty">${msg}</div></div>`;
+    return;
+  }
+  container.innerHTML = '';
+  list.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'sortie-card';
+    div.tabIndex = 0;
+    div.setAttribute('role', 'link');
+    div.onclick = () => openSortie(s.sortie_id);
+    div.onkeydown = e => { if(e.key === 'Enter') openSortie(s.sortie_id); };
+    const n = (s.inscrits || []).length;
+    const passee = (s.statut || 'prevue') === 'prevue' && s.date && s.date < auj;
+    div.innerHTML = `${dateBlock(s)}
+      <div class="sc-body"><h4>${esc(s.titre)}</h4>${metaChips(s)}${s.organisateur ? `<div class="sc-orga">Organisée par ${esc(s.organisateur)}</div>` : ''}</div>
+      <div class="sc-side">${inscrit(s) && (s.statut || 'prevue') === 'prevue' ? '<span class="badge moi">Inscrit</span>' : statutBadge(s.statut)}
+        ${(s.statut || 'prevue') === 'prevue' ? `<span class="sc-people">${n ? n + ' inscrit' + (n > 1 ? 's' : '') : 'Personne encore'}</span>` : ''}
+        ${passee ? '<span class="sc-people" style="color:var(--warn)">Date passée, à clôturer</span>' : ''}</div>`;
+    container.appendChild(div);
+  });
+}
+function prefillFromCatalogue(){
+  const id = document.getElementById('s_cat').value;
+  const info = document.getElementById('s_cat_info');
+  const c = catalogueCache.find(x => String(x.catalogue_id) === id);
+  if(!c){ info.textContent = ''; return; }
+  const set = (k, v) => { const el = document.getElementById(k); if(el && v !== undefined && v !== null) el.value = v; };
+  set('s_titre', c.titre); set('s_activite', c.type_activite || 'Randonnée'); set('s_nuitee', c.mode_nuitee || 'Journée');
+  set('s_terrain', c.terrain || 'Sentier'); set('s_saison', c.saison || 'Été'); set('s_difficulte', String(c.difficulte || 2));
+  set('s_duree', c.duree_jours || 1); set('s_dist', c.distance_km); set('s_dplus', c.d_plus);
+  set('s_lieu', c.lieu || ''); set('s_lat', c.lat); set('s_lon', c.lon); set('s_trace_lien', c.trace_lien || '');
+  const ok = document.getElementById('s_lieu_ok'); if(ok) ok.textContent = (c.lat !== '' && c.lat !== undefined) ? 'Point de départ repris de l\'itinéraire' : '';
+  info.textContent = c.gpx_id ? 'La trace GPX de l\'itinéraire sera reprise automatiquement.' : '';
+}
+async function createSortie(){
+  const g = id => document.getElementById(id).value;
+  const body = {
+    titre: g('s_titre').trim(), type_activite: g('s_activite'), mode_nuitee: g('s_nuitee'), terrain: g('s_terrain'),
+    saison: g('s_saison'), difficulte: g('s_difficulte'), duree_jours: g('s_duree'), distance_km: g('s_dist'), d_plus: g('s_dplus'),
+    date: g('s_date'), catalogue_id: g('s_cat'), organisateur: currentUser, trace_lien: g('s_trace_lien').trim(),
+    notifier: document.getElementById('s_notifier').checked, ...lieuValues('s'),
+  };
+  if(!body.titre){ document.getElementById('s_titre').focus(); toast('Donne un titre à la sortie'); return; }
+  const btn = document.getElementById('s_submit'); btn.disabled = true; btn.textContent = 'Planification…';
+  const r = await apiPost('sortie_add', body);
+  if(r && r.ok === false){ btn.disabled = false; btn.textContent = 'Planifier la sortie'; alert(r.error); return; }
+  const rg = await envoyerGpx('s', 'sortie', r.sortie_id);
+  if(rg && rg.ok === false) alert('Sortie créée, mais la trace GPX n\'a pas été enregistrée : ' + rg.error);
+  if(r.agenda_error) alert('Sortie créée, mais l\'agenda BMG n\'a pas pu être mis à jour : ' + r.agenda_error);
+  toast(r.mail && /envoyé/.test(r.mail) ? 'Sortie planifiée ✓ Les membres sont prévenus' : 'Sortie planifiée ✓');
+  sortieFilter = 'prevue';
+  sortiesCache = await apiGet('sorties');
+  openSortie(r.sortie_id);
+}
+
+// ---------- Itinéraires du club (onglet Catalogue de la base) ----------
 let catEditId = null;
 async function loadCatalogue(){
   try{ catalogueCache = await apiGet('catalogue'); }
@@ -622,22 +958,28 @@ function renderCatalogueList(){
   if(!box) return;
   const q = (document.getElementById('f_q').value || '').toLowerCase();
   const t = document.getElementById('f_type').value;
-  const s = document.getElementById('f_saison').value;
+  const sa = document.getElementById('f_saison').value;
   const d = Number(document.getElementById('f_diff').value) || 0;
+  const avecGpx = document.getElementById('f_gpx').checked;
   const list = catalogueCache.filter(c =>
-    (!q || (String(c.titre) + ' ' + String(c.notes) + ' ' + String(c.organisateur)).toLowerCase().includes(q)) &&
-    (!t || c.type_activite === t) && (!s || c.saison === s) && (!d || Number(c.difficulte) <= d))
+    (!q || [c.titre, c.notes, c.organisateur, c.lieu].map(String).join(' ').toLowerCase().includes(q)) &&
+    (!t || c.type_activite === t) && (!sa || c.saison === sa) && (!d || Number(c.difficulte) <= d) && (!avecGpx || c.gpx_id))
     .sort((a,b) => String(a.titre).localeCompare(String(b.titre),'fr'));
-  if(!list.length){ box.innerHTML = '<div class="panel"><div class="empty">Aucune idée ne correspond.</div></div>'; return; }
+  document.getElementById('catalogue-count').textContent = list.length === catalogueCache.length
+    ? `${list.length} itinéraire${list.length > 1 ? 's' : ''}` : `${list.length} sur ${catalogueCache.length} itinéraires`;
+  if(!list.length){ box.innerHTML = '<div class="panel"><div class="empty">Aucun itinéraire ne correspond. Élargis les filtres ou propose le tien.</div></div>'; return; }
   box.innerHTML = '';
   list.forEach(c => {
     const div = document.createElement('div');
     div.className = 'idea-card';
     const topo = /^https?:\/\//.test(String(c.topo)) ? `<a href="${esc(c.topo)}" target="_blank" rel="noopener">Voir le topo</a>` : esc(c.topo);
+    const lien = /^https?:\/\//.test(String(c.trace_lien)) ? `<a href="${esc(c.trace_lien)}" target="_blank" rel="noopener">Ouvrir la trace</a>` : '';
     const peutModifier = isBureau() || c.cree_par === currentUser || c.organisateur === currentUser || c.cree_par === 'migration';
     div.innerHTML = `<div class="sc-body"><h4>${esc(c.titre)}</h4>${metaChips(c, true)}
-      ${c.organisateur ? `<div class="sc-orga">Idée de ${esc(c.organisateur)}</div>` : ''}
-      ${c.topo ? `<div class="sc-orga">${topo}</div>` : ''}
+      ${c.gpx_id ? '<div class="chips" style="margin-top:6px;"><span class="chip strong">Trace GPX</span></div>' : ''}
+      ${c.lieu ? `<div class="sc-orga">Départ : ${esc(c.lieu)}</div>` : ''}
+      ${c.organisateur ? `<div class="sc-orga">Proposé par ${esc(c.organisateur)}</div>` : ''}
+      ${c.topo ? `<div class="sc-orga">${topo}</div>` : ''}${lien ? `<div class="sc-orga">${lien}</div>` : ''}
       ${c.notes ? `<div class="sc-orga">${esc(String(c.notes).slice(0,200))}</div>` : ''}</div>
       <div class="idea-actions"><button class="small" onclick="planifierDepuisCatalogue('${esc(c.catalogue_id)}')">Planifier</button>
       ${peutModifier ? `<span class="lnk" onclick="editCatalogue('${esc(c.catalogue_id)}')">modifier</span><span class="lnk" onclick="delCatalogue('${esc(c.catalogue_id)}')">supprimer</span>` : ''}</div>`;
@@ -645,63 +987,60 @@ function renderCatalogueList(){
   });
 }
 function planifierDepuisCatalogue(id){
-  setView('sorties');
-  let essais = 0;
-  const t = setInterval(() => {
-    const sel = document.getElementById('s_cat');
-    essais++;
-    if(sel && sel.options.length > 1){
-      clearInterval(t);
-      toggleSortieForm(true); sel.value = id; prefillFromCatalogue();
-    } else if(essais > 40) clearInterval(t);
-  }, 150);
+  toggleSortieForm(true);
+  const sel = document.getElementById('s_cat');
+  if(sel){ sel.value = id; prefillFromCatalogue(); }
+  setTimeout(() => { const d = document.getElementById('s_date'); if(d) d.focus({preventScroll:true}); }, 400);
 }
 function catBody(){
+  const g = id => document.getElementById(id).value;
   return {
-    titre: document.getElementById('c_titre').value.trim(),
-    type_activite: document.getElementById('c_activite').value,
-    mode_nuitee: document.getElementById('c_nuitee').value,
-    terrain: document.getElementById('c_terrain').value,
-    saison: document.getElementById('c_saison').value,
-    difficulte: document.getElementById('c_difficulte').value,
-    duree_jours: document.getElementById('c_duree').value,
-    distance_km: document.getElementById('c_dist').value,
-    d_plus: document.getElementById('c_dplus').value,
-    topo: document.getElementById('c_topo').value,
-    notes: document.getElementById('c_notes').value,
+    titre: g('c_titre').trim(), type_activite: g('c_activite'), mode_nuitee: g('c_nuitee'), terrain: g('c_terrain'),
+    saison: g('c_saison'), difficulte: g('c_difficulte'), duree_jours: g('c_duree'), distance_km: g('c_dist'), d_plus: g('c_dplus'),
+    topo: g('c_topo'), notes: g('c_notes'), trace_lien: g('c_trace_lien').trim(), ...lieuValues('c'),
   };
 }
 async function saveCatalogue(){
   const body = catBody();
-  if(!body.titre) return;
-  const r = catEditId ? await apiPost('catalogue_update', {...body, catalogue_id: catEditId}) : await apiPost('catalogue_add', {...body, organisateur: currentUser});
+  if(!body.titre){ document.getElementById('c_titre').focus(); toast('Donne un nom à l\'itinéraire'); return; }
+  const editing = !!catEditId;
+  const r = editing ? await apiPost('catalogue_update', {...body, catalogue_id: catEditId}) : await apiPost('catalogue_add', {...body, organisateur: currentUser});
   if(r && r.ok === false){ alert(r.error); return; }
+  const rg = await envoyerGpx('c', 'catalogue', editing ? catEditId : r.catalogue_id);
+  if(rg && rg.ok === false) alert('Itinéraire enregistré, mais la trace GPX n\'a pas été enregistrée : ' + rg.error);
   cancelCatalogueEdit();
+  toast(editing ? 'Itinéraire mis à jour ✓' : 'Itinéraire ajouté ✓');
   loadCatalogue();
 }
 function editCatalogue(id){
   const c = catalogueCache.find(x => String(x.catalogue_id) === id);
   if(!c) return;
   catEditId = id;
-  const set = (k, v) => { document.getElementById(k).value = (v === undefined || v === null) ? '' : v; };
+  const set = (k, v) => { const el = document.getElementById(k); if(el) el.value = (v === undefined || v === null) ? '' : v; };
   set('c_titre', c.titre); set('c_activite', c.type_activite); set('c_nuitee', c.mode_nuitee); set('c_terrain', c.terrain);
   set('c_saison', c.saison || 'Été'); set('c_difficulte', String(c.difficulte || 2)); set('c_duree', c.duree_jours || 1);
-  set('c_dist', c.distance_km); set('c_dplus', c.d_plus); set('c_topo', c.topo); set('c_notes', c.notes);
-  document.getElementById('cat_form_title').textContent = 'Modifier l\'idée';
+  set('c_dist', c.distance_km); set('c_dplus', c.d_plus); set('c_topo', c.topo); set('c_notes', c.notes); set('c_trace_lien', c.trace_lien);
+  document.getElementById('c_lieu_wrap').innerHTML = lieuPicker('c', c.lieu || '', c.lat, c.lon);
+  document.getElementById('c_gpx_info').textContent = c.gpx_id ? 'Une trace GPX est déjà enregistrée. Choisis un fichier pour la remplacer.' : '';
+  document.getElementById('cat_form_title').textContent = 'Modifier l\'itinéraire';
   document.getElementById('c_submit').textContent = 'Enregistrer';
   toggleIdeeForm(true);
 }
 function cancelCatalogueEdit(){
   catEditId = null;
-  ['c_titre','c_dist','c_dplus','c_topo','c_notes'].forEach(k => { const el = document.getElementById(k); if(el) el.value = ''; });
-  const t = document.getElementById('cat_form_title'); if(t) t.textContent = 'Proposer une idée de sortie';
-  const b = document.getElementById('c_submit'); if(b) b.textContent = 'Ajouter l\'idée';
+  delete gpxPending.c;
+  ['c_titre','c_dist','c_dplus','c_topo','c_notes','c_trace_lien','c_gpx'].forEach(k => { const el = document.getElementById(k); if(el) el.value = ''; });
+  const w = document.getElementById('c_lieu_wrap'); if(w) w.innerHTML = lieuPicker('c', '', '', '');
+  const i = document.getElementById('c_gpx_info'); if(i) i.textContent = '';
+  const t = document.getElementById('cat_form_title'); if(t) t.textContent = 'Proposer un itinéraire';
+  const b = document.getElementById('c_submit'); if(b) b.textContent = 'Ajouter l\'itinéraire';
   toggleIdeeForm(false);
 }
 async function delCatalogue(id){
-  if(!confirm('Supprimer cette idée de sortie ?')) return;
+  if(!confirm('Supprimer cet itinéraire ? Les sorties déjà planifiées depuis lui sont conservées.')) return;
   const r = await apiPost('catalogue_delete', {catalogue_id: id});
   if(r && r.ok === false){ alert(r.error); return; }
+  toast('Itinéraire supprimé ✓');
   loadCatalogue();
 }
 
@@ -738,61 +1077,120 @@ async function loadBilan(){
 }
 
 // ================= ÉCRAN DÉTAIL SORTIE =================
+let presentCache = [];   // inscrits de la sortie ouverte
+
 function renderSortieDetailScreen(){
   return `
-  <div class="backbar"><button class="outline small" onclick="currentSortieId=null; render();">← Retour aux sorties</button></div>
-  <div class="panel" id="detail-header"></div>
+  <div class="backbar"><button class="outline small" onclick="backToList()">← Toutes les sorties</button></div>
+  <div class="panel" id="detail-header"><div class="status">Chargement de la sortie…</div></div>
   <div class="panel" id="detail-bureau" style="display:none;"></div>
+  <div class="panel" id="wx-panel" style="display:none;"><h3>Météo au départ</h3><div id="wx"></div></div>
+  <div class="panel" id="trace-panel"><h3>Trace</h3><div id="trace"></div></div>
+  <div class="panel"><h3>Covoiturage</h3><div id="covoit"><div class="status">Chargement…</div></div></div>
   <div class="panel">
     <h3>Participants</h3>
     <div class="participants-list" id="participants-list"></div>
   </div>
   <div class="panel">
-    <div class="btnrow"><h3 style="margin:0;">Matériel collectif</h3><button class="small" onclick="autoAssign()">Réassigner automatiquement</button></div>
+    <div class="btnrow"><h3 style="margin:0;">Matériel collectif</h3><button class="small" onclick="autoAssign()">Répartir automatiquement</button></div>
     <div id="collectif-list"></div>
   </div>
   <div class="panel">
     <h3>Repas prévus</h3>
-    <div class="grid" style="margin-bottom:10px;">
-      <div><label>Jour</label><input type="number" id="r_jour" value="1" min="1"></div>
-      <div><label>Moment</label><select id="r_moment"><option>Petit-déj</option><option>Midi</option><option>Soir</option></select></div>
-      <div><label>Plat</label><input type="text" id="r_plat" placeholder="ex: Poulet rôti"></div>
-      <div><label>Responsable</label><input type="text" id="r_resp"></div>
-      <div><label>Portions</label><input type="number" id="r_portions" value="1" min="1"></div>
-      <div><button onclick="addRepas()">+ Ajouter</button></div>
+    <div class="grid two" style="margin-bottom:10px;">
+      <div><label for="r_jour">Jour</label><input type="number" id="r_jour" value="1" min="1"></div>
+      <div><label for="r_moment">Moment</label><select id="r_moment"><option>Petit-déj</option><option>Midi</option><option>Soir</option></select></div>
+      <div class="full"><label for="r_plat">Plat</label><input type="text" id="r_plat" placeholder="ex. Poulet rôti"></div>
+      <div><label for="r_resp">Qui le prépare</label><input type="text" id="r_resp"></div>
+      <div><label for="r_portions">Portions</label><input type="number" id="r_portions" value="1" min="1"></div>
+      <div><button onclick="addRepas()">+ Ajouter le repas</button></div>
     </div>
     <div id="repas-list"></div>
   </div>
   <div class="panel"><div class="weightbar" id="detail-weightbar"></div></div>
-  <h3>Fiche par personne</h3>
+  <h3>Sac de chacun</h3>
   <div id="recap-list"></div>`;
 }
 
 async function openSortieData(){
-  currentSortie = sortiesCache.find(s => String(s.sortie_id) === String(currentSortieId)) || currentSortie;
-  const cs = currentSortie;
-  document.getElementById('detail-header').innerHTML = `<h2 class="page-title" style="margin-top:0;">${esc(cs.titre)}</h2>
-    <div class="detail-badges">${statutBadge(cs.statut)}${cs.date ? `<span class="chip strong">${esc(fmtDateLong(cs.date))}</span>` : '<span class="chip todo">Date à définir</span>'}${cs.duree_jours ? `<span class="chip">${esc(cs.duree_jours)} jour(s)</span>` : ''}</div>
-    ${metaChips(cs)}
-    ${cs.organisateur ? `<div class="sc-orga">Organisateur : ${esc(cs.organisateur)}</div>` : ''}
-        ${canManage(cs) && cs.statut !== 'faite' ? `<details style="margin:18px 0 6px;" ${(!cs.type_activite||!cs.terrain||!cs.mode_nuitee||cs.difficulte==='')?'open':''}><summary class="lnk" style="margin-left:0;">Modifier la sortie (date, type, nuitée, terrain…)</summary>
-      <div class="grid" style="margin:16px 0;">
-        <div><label>Date</label><input type="date" id="e_date" value="${esc(cs.date)}"></div>
-        <div><label>Type d'activité</label><select id="e_type"><option value=""></option>${opts(TYPES, cs.type_activite)}</select></div>
-        <div><label>Mode de nuitée</label><select id="e_nuitee"><option value=""></option>${opts(NUITEES, cs.mode_nuitee)}</select></div>
-        <div><label>Terrain</label><select id="e_terrain"><option value=""></option>${opts(TERRAINS, cs.terrain)}</select></div>
-        <div><label>Saison</label><select id="e_saison">${opts(SAISONS, cs.saison)}</select></div>
-        <div><label>Difficulté</label><select id="e_diff"><option value=""></option>${opts(['1','2','3','4','5'], String(cs.difficulte))}</select></div>
-        <div><label>Durée (j)</label><input type="number" min="1" id="e_duree" value="${esc(cs.duree_jours)}"></div>
-        <div><label>Distance (km)</label><input type="text" id="e_dist" value="${esc(cs.distance_km)}"></div>
-        <div><label>D+ (m)</label><input type="text" id="e_dplus" value="${esc(cs.d_plus)}"></div>
-        <div><button class="small" onclick="saveSortieEdit()">Enregistrer</button></div>
-      </div></details>` : ''}
-    ${cs.event_id ? '<div class="sortie-meta">Dans l\'agenda BMG</div>' : (cs.date && cs.statut==='prevue' ? '<div class="sortie-meta">Pas encore dans l\'agenda BMG</div>' : '')}
-    ${canManage(cs) && cs.statut !== 'faite' ? `<div style="margin-top:10px;"><span class="lnk" style="margin-left:0;" onclick="setStatutSortie('${cs.statut==='annulee'?'prevue':'annulee'}')">${cs.statut==='annulee'?'rétablir la sortie':'annuler la sortie'}</span><span class="lnk" onclick="deleteSortie()">supprimer</span></div>` : ''}`;
+  let cs = sortiesCache.find(s => String(s.sortie_id) === String(currentSortieId));
+  if(!cs){
+    try{ sortiesCache = await apiGet('sorties'); }catch(e){ showLoadError('detail-header', e); return; }
+    cs = sortiesCache.find(s => String(s.sortie_id) === String(currentSortieId));
+  }
+  if(!cs){
+    document.getElementById('detail-header').innerHTML = '<div class="empty">Cette sortie n\'existe plus. Elle a peut-être été supprimée.</div>';
+    return;
+  }
+  currentSortie = cs;
+  document.title = cs.titre + ' · BMG';
+  renderDetailHeader();
   renderBureauPanel();
+  renderMeteo();
+  renderTrace();
+  refreshParticipants();
+  refreshRepas();
+}
+
+function renderDetailHeader(){
+  const cs = currentSortie;
+  const st = cs.statut || 'prevue';
+  const moi = presentCache.length ? presentCache.includes(currentUser) : inscrit(cs);
+  const gere = canManage(cs);
+  const incomplete = !cs.type_activite || !cs.terrain || !cs.mode_nuitee || cs.difficulte === '';
+  document.getElementById('detail-header').innerHTML = `<h2 class="page-title" style="margin-top:0;">${esc(cs.titre)}</h2>
+    <div class="detail-badges">${statutBadge(st)}${cs.date ? `<span class="chip strong">${esc(fmtDateLong(cs.date))}</span>` : '<span class="chip todo">Date à définir</span>'}${Number(cs.duree_jours) > 1 ? `<span class="chip">${esc(cs.duree_jours)} jours</span>` : ''}</div>
+    ${metaChips(cs)}
+    ${cs.lieu ? `<div class="sc-orga">Départ : ${esc(cs.lieu)}</div>` : ''}
+    ${cs.organisateur ? `<div class="sc-orga">Organisée par ${esc(cs.organisateur)}</div>` : ''}
+    <div class="hero-actions">
+      ${st === 'prevue' ? `<button class="go ${moi ? 'on' : ''}" id="btn-go" onclick="toggleMoi()">${moi ? '✓ Je participe' : 'Je participe'}</button>` : ''}
+      <button class="outline" onclick="partagerSortie()">Partager</button>
+    </div>
+    ${gere && st !== 'faite' ? `<details class="manage" ${incomplete ? 'open' : ''}><summary>Modifier la sortie</summary>
+      <div class="grid two" style="margin:16px 0;">
+        <div class="full"><label for="e_titre">Titre</label><input type="text" id="e_titre" value="${esc(cs.titre)}"></div>
+        <div><label for="e_date">Date</label><input type="date" id="e_date" value="${esc(cs.date)}"></div>
+        <div><label for="e_duree">Durée (jours)</label><input type="number" min="1" id="e_duree" value="${esc(cs.duree_jours)}"></div>
+        <div><label for="e_type">Type d'activité</label><select id="e_type"><option value=""></option>${opts(TYPES, cs.type_activite)}</select></div>
+        <div><label for="e_nuitee">Nuitée</label><select id="e_nuitee"><option value=""></option>${opts(NUITEES, cs.mode_nuitee)}</select></div>
+        <div><label for="e_terrain">Terrain</label><select id="e_terrain"><option value=""></option>${opts(TERRAINS, cs.terrain)}</select></div>
+        <div><label for="e_saison">Saison</label><select id="e_saison">${opts(SAISONS, cs.saison)}</select></div>
+        <div><label for="e_diff">Difficulté</label><select id="e_diff"><option value=""></option>${opts(['1','2','3','4','5'], String(cs.difficulte))}</select></div>
+        <div><label for="e_dist">Distance (km)</label><input type="text" id="e_dist" inputmode="decimal" value="${esc(cs.distance_km)}"></div>
+        <div><label for="e_dplus">D+ (m)</label><input type="text" id="e_dplus" inputmode="numeric" value="${esc(cs.d_plus)}"></div>
+        <div class="full">${lieuPicker('e', cs.lieu || '', cs.lat, cs.lon)}</div>
+        <div class="full"><button onclick="saveSortieEdit()">Enregistrer les modifications</button>
+          <div class="status">Un changement de date, de durée ou de lieu prévient les inscrits par email.</div></div>
+      </div></details>` : ''}
+    <div class="quiet-links">
+      ${cs.event_id ? '<span class="note" style="display:inline">Dans l\'agenda BMG</span>' : (cs.date && st === 'prevue' ? '<span class="note" style="display:inline">Pas encore dans l\'agenda BMG</span>' : '')}
+      ${gere && st !== 'faite' ? `<span class="lnk" onclick="setStatutSortie('${st === 'annulee' ? 'prevue' : 'annulee'}')">${st === 'annulee' ? 'Rétablir la sortie' : 'Annuler la sortie'}</span><span class="lnk" onclick="deleteSortie()">Supprimer</span>` : ''}
+    </div>`;
+}
+async function partagerSortie(){
+  const url = location.origin + location.pathname + '#s=' + encodeURIComponent(currentSortieId);
+  const titre = currentSortie.titre + (currentSortie.date ? ', ' + fmtDateLong(currentSortie.date) : '');
+  if(navigator.share){ try{ await navigator.share({title: titre, url}); return; }catch(e){ if(e.name === 'AbortError') return; } }
+  try{ await navigator.clipboard.writeText(url); toast('Lien copié ✓'); }
+  catch(e){ prompt('Copie ce lien :', url); }
+}
+async function toggleMoi(){
+  const moi = presentCache.includes(currentUser);
+  if(moi){
+    const covoit = window._covoit || {voitures:[], passagers:[]};
+    const maVoiture = covoit.voitures.find(v => v.conducteur === currentUser);
+    if(maVoiture){
+      const n = covoit.passagers.filter(p => String(p.voiture_id) === String(maVoiture.voiture_id)).length;
+      if(!confirm(`Tu proposes une voiture${n ? ' avec ' + n + ' passager(s)' : ''}. En te désinscrivant, elle sera retirée du covoiturage. Continuer ?`)) return;
+    }
+  }
+  const btn = document.getElementById('btn-go'); if(btn) btn.disabled = true;
+  const r = await apiPost('participant_set', {sortie_id: currentSortieId, pseudo: currentUser, present: !moi});
+  if(btn) btn.disabled = false;
+  if(r && r.ok === false){ alert(r.error); return; }
+  toast(moi ? 'Désinscription enregistrée' : 'Inscription enregistrée ✓');
   await refreshParticipants();
-  await refreshRepas();
 }
 
 function renderBureauPanel(){
@@ -802,74 +1200,399 @@ function renderBureauPanel(){
   const s = currentSortie;
   box.style.display = 'block';
   box.innerHTML = `<h3>Bureau : bilan de la sortie</h3>
-    <div class="grid" style="margin-bottom:10px;">
-      <div><label>Date réelle</label><input type="date" id="k_date" value="${esc(s.date_reelle || s.date || '')}"></div>
-      <div><label>Distance (km)</label><input type="text" id="k_dist" value="${esc(s.distance_km)}"></div>
-      <div><label>D+ (m)</label><input type="text" id="k_dplus" value="${esc(s.d_plus)}"></div>
-      <div><label>Nb participants</label><input type="number" id="k_nb" value="${esc(s.nb_participants)}"></div>
-      <div style="grid-column:1/-1;"><label>Notes de bilan</label><input type="text" id="k_notes" value="${esc(s.notes_bilan)}"></div>
-      <div><button onclick="closeSortie()">${s.statut==='faite' ? 'Mettre à jour le bilan' : 'Marquer comme faite'}</button></div>
+    <div class="grid two" style="margin-bottom:10px;">
+      <div class="full"><label for="k_date">Date réelle</label><input type="date" id="k_date" value="${esc(s.date_reelle || s.date || '')}"></div>
+      <div><label for="k_dist">Distance (km)</label><input type="text" id="k_dist" inputmode="decimal" value="${esc(s.distance_km)}"></div>
+      <div><label for="k_dplus">D+ (m)</label><input type="text" id="k_dplus" inputmode="numeric" value="${esc(s.d_plus)}"></div>
+      <div class="full"><label for="k_notes">Notes de bilan</label><input type="text" id="k_notes" value="${esc(s.notes_bilan)}"></div>
+      <div class="full"><button onclick="closeSortie()">${s.statut==='faite' ? 'Mettre à jour le bilan' : 'Marquer comme faite'}</button>
+        <div class="status">Le nombre de participants est calculé à partir des inscrits.</div></div>
     </div>`;
 }
+async function reloadCurrent(){
+  sortiesCache = await apiGet('sorties');
+  currentSortie = sortiesCache.find(x => String(x.sortie_id) === String(currentSortieId)) || currentSortie;
+  openSortieData();
+}
 async function closeSortie(){
+  const dejaFaite = currentSortie && currentSortie.statut === 'faite';
   const r = await apiPost('sortie_statut', {
     sortie_id: currentSortieId, statut: 'faite',
     date_reelle: document.getElementById('k_date').value,
     distance_km: document.getElementById('k_dist').value, d_plus: document.getElementById('k_dplus').value,
-    nb_participants: document.getElementById('k_nb').value, notes_bilan: document.getElementById('k_notes').value,
+    notes_bilan: document.getElementById('k_notes').value,
   });
   if(r && r.ok === false){ alert(r.error); return; }
-  sortiesCache = await apiGet('sorties');
-  currentSortie = sortiesCache.find(x => String(x.sortie_id) === String(currentSortieId)) || currentSortie;
-  openSortieData();
+  await reloadCurrent();
+  toast(dejaFaite ? 'Bilan mis à jour ✓' : 'Sortie marquée comme faite ✓');
 }
 async function saveSortieEdit(){
   const g = id => document.getElementById(id).value;
-  const r = await apiPost('sortie_update', {sortie_id: currentSortieId, date: g('e_date'), type_activite: g('e_type'), mode_nuitee: g('e_nuitee'),
-    terrain: g('e_terrain'), saison: g('e_saison'), difficulte: g('e_diff'), duree_jours: g('e_duree'), distance_km: g('e_dist'), d_plus: g('e_dplus')});
+  const r = await apiPost('sortie_update', {sortie_id: currentSortieId, titre: g('e_titre').trim() || currentSortie.titre, date: g('e_date'),
+    type_activite: g('e_type'), mode_nuitee: g('e_nuitee'), terrain: g('e_terrain'), saison: g('e_saison'), difficulte: g('e_diff'),
+    duree_jours: g('e_duree'), distance_km: g('e_dist'), d_plus: g('e_dplus'), ...lieuValues('e')});
   if(r && r.ok === false){ alert(r.error); return; }
   if(r && r.agenda_error) alert('Sortie enregistrée, mais l\'agenda BMG n\'a pas pu être mis à jour : ' + r.agenda_error);
-  sortiesCache = await apiGet('sorties');
-  currentSortie = sortiesCache.find(x => String(x.sortie_id) === String(currentSortieId)) || currentSortie;
-  openSortieData();
+  await reloadCurrent();
+  toast(r.mail && /envoyé/.test(r.mail) ? 'Sortie mise à jour ✓ Les inscrits sont prévenus' : 'Sortie mise à jour ✓');
 }
 async function setStatutSortie(statut){
+  if(statut === 'annulee' && !confirm('Annuler la sortie ? Les inscrits seront prévenus par email.')) return;
   const r = await apiPost('sortie_statut', {sortie_id: currentSortieId, statut});
   if(r && r.ok === false){ alert(r.error); return; }
-  sortiesCache = await apiGet('sorties');
-  currentSortie = sortiesCache.find(x => String(x.sortie_id) === String(currentSortieId)) || currentSortie;
-  openSortieData();
+  await reloadCurrent();
+  toast(statut === 'annulee' ? 'Sortie annulée ✓' : 'Sortie rétablie ✓');
 }
 async function deleteSortie(){
-  if(!confirm('Supprimer définitivement cette sortie ?')) return;
+  if(!confirm('Supprimer définitivement cette sortie ? Les inscrits seront prévenus de l\'annulation.')) return;
   const r = await apiPost('sortie_delete', {sortie_id: currentSortieId});
   if(r && r.ok === false){ alert(r.error); return; }
-  currentSortieId = null; render();
+  sortiesCache = sortiesCache.filter(x => String(x.sortie_id) !== String(currentSortieId));
+  toast('Sortie supprimée');
+  currentSortieId = null; clearHash(); render();
 }
 
 async function refreshParticipants(){
-  const parts = await apiGet('participants', {sortie_id: currentSortieId});
-  const presentSet = new Set(parts.filter(p => String(p.present) === 'true' || p.present === true).map(p => p.pseudo));
+  let parts;
+  try{ parts = await apiGet('participants', {sortie_id: currentSortieId}); }
+  catch(e){ showLoadError('participants-list', e); return; }
+  presentCache = parts.filter(p => String(p.present) === 'true' || p.present === true).map(p => p.pseudo);
+  const presentSet = new Set(presentCache);
+  if(currentSortie) currentSortie.inscrits = presentCache.slice();
+  renderDetailHeaderButton();
   const container = document.getElementById('participants-list');
   if(!container) return;
   container.innerHTML = '';
   const droitTous = canManage(currentSortie);
   membresCache.forEach(m => {
-    const chip = document.createElement('div');
+    const chip = document.createElement('button');
     const editable = droitTous || m.pseudo === currentUser;
+    chip.type = 'button';
     chip.className = 'part-chip' + (presentSet.has(m.pseudo) ? ' present' : '');
     chip.textContent = m.pseudo;
-    if(!editable){ chip.style.opacity = '0.55'; chip.style.cursor = 'default'; chip.title = 'Seuls l\'organisateur et le bureau peuvent modifier les autres inscriptions'; }
+    chip.setAttribute('aria-pressed', presentSet.has(m.pseudo));
+    if(!editable){ chip.disabled = true; chip.style.opacity = '0.55'; chip.style.cursor = 'default'; chip.title = 'Seuls l\'organisateur et le bureau peuvent modifier les autres inscriptions'; }
     chip.onclick = async () => {
       if(!editable) return;
       const nowPresent = !chip.classList.contains('present');
       const r = await apiPost('participant_set', {sortie_id: currentSortieId, pseudo: m.pseudo, present: nowPresent});
       if(r && r.ok === false){ alert(r.error); return; }
+      if(r.passagers_sans_voiture) toast(`${m.pseudo} ne conduit plus : ${r.passagers_sans_voiture} passager(s) à replacer`);
       await refreshParticipants();
     };
     container.appendChild(chip);
   });
-  await computeAllKits();
+  refreshCovoit();
+  await computeAllKits(presentCache);
+}
+function renderDetailHeaderButton(){
+  const btn = document.getElementById('btn-go'); if(!btn) return;
+  const moi = presentCache.includes(currentUser);
+  btn.classList.toggle('on', moi);
+  btn.textContent = moi ? '✓ Je participe' : 'Je participe';
+}
+
+// ================= MÉTÉO (Open-Meteo, sans clé) =================
+const WX = {0:['☀️','Ciel dégagé'],1:['🌤️','Plutôt dégagé'],2:['⛅','Éclaircies'],3:['☁️','Couvert'],45:['🌫️','Brouillard'],48:['🌫️','Brouillard givrant'],
+  51:['🌦️','Bruine faible'],53:['🌦️','Bruine'],55:['🌧️','Bruine forte'],56:['🌧️','Bruine verglaçante'],57:['🌧️','Bruine verglaçante'],
+  61:['🌦️','Pluie faible'],63:['🌧️','Pluie'],65:['🌧️','Pluie forte'],66:['🌧️','Pluie verglaçante'],67:['🌧️','Pluie verglaçante'],
+  71:['🌨️','Neige faible'],73:['🌨️','Neige'],75:['❄️','Neige forte'],77:['🌨️','Grains de neige'],80:['🌦️','Averses'],81:['🌧️','Averses'],82:['⛈️','Fortes averses'],
+  85:['🌨️','Averses de neige'],86:['❄️','Fortes averses de neige'],95:['⛈️','Orage'],96:['⛈️','Orage et grêle'],99:['⛈️','Orage et grêle']};
+function isoJour(d){ const z = n => String(n).padStart(2,'0'); return d.getFullYear() + '-' + z(d.getMonth()+1) + '-' + z(d.getDate()); }
+function dateIso(iso){ const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||'')); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; }
+async function renderMeteo(){
+  const cs = currentSortie;
+  const panel = document.getElementById('wx-panel'), box = document.getElementById('wx');
+  if(!panel) return;
+  const st = cs.statut || 'prevue';
+  const d0 = dateIso(cs.date);
+  const auj = new Date(); auj.setHours(0,0,0,0);
+  const jours = Math.max(1, Number(cs.duree_jours) || 1);
+  if(st !== 'prevue' || !d0){ panel.style.display = 'none'; return; }
+  const fin = new Date(d0); fin.setDate(fin.getDate() + jours - 1);
+  if(fin < auj){ panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  if(cs.lat === '' || cs.lat === undefined || cs.lon === '' || cs.lon === undefined){
+    box.innerHTML = `<div class="empty">Pas de point de départ : ${canManage(cs) ? 'indique le lieu dans « Modifier la sortie » ou importe une trace GPX' : 'l\'organisateur peut ajouter un lieu ou une trace'} pour voir la météo.</div>`;
+    return;
+  }
+  const max = new Date(auj); max.setDate(max.getDate() + 15);
+  if(d0 > max){
+    const dispo = new Date(d0); dispo.setDate(dispo.getDate() - 15);
+    box.innerHTML = `<div class="empty">Les prévisions apparaîtront ici à partir du ${dispo.toLocaleDateString('fr-FR', {day:'numeric', month:'long'})}, 15 jours avant la sortie.</div>`;
+    return;
+  }
+  const debut = d0 < auj ? auj : d0;
+  const finMax = fin > max ? max : fin;
+  box.innerHTML = '<div class="status">Chargement des prévisions…</div>';
+  try{
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${cs.lat}&longitude=${cs.lon}&timezone=Europe%2FParis` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max` +
+      `&hourly=freezing_level_height&start_date=${isoJour(debut)}&end_date=${isoJour(finMax)}`;
+    const d = await (await fetch(url)).json();
+    if(!d.daily) throw new Error(d.reason || 'réponse vide');
+    const iso0 = {};
+    (d.hourly && d.hourly.time || []).forEach((t, i) => { if(t.endsWith('T13:00')) iso0[t.slice(0,10)] = d.hourly.freezing_level_height[i]; });
+    box.innerHTML = '<div class="wx">' + d.daily.time.map((t, i) => {
+      const code = d.daily.weather_code[i];
+      const [ico, lbl] = WX[code] || ['·', 'Indéterminé'];
+      const cls = code >= 95 ? 'storm' : (code >= 61 || (d.daily.wind_gusts_10m_max[i] || 0) >= 70) ? 'bad' : '';
+      const prob = d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[i] : null;
+      return `<div class="wx-day ${cls}">
+        <div class="wx-date">${dateIso(t).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'short'})}</div>
+        <div class="wx-ico" aria-hidden="true">${ico}</div><div class="wx-lbl">${lbl}</div>
+        <div class="wx-t">${Math.round(d.daily.temperature_2m_max[i])}° <span>/ ${Math.round(d.daily.temperature_2m_min[i])}°</span></div>
+        <div class="wx-l">Pluie ${fmtNum(d.daily.precipitation_sum[i])} mm${prob !== null ? ' (' + prob + ' %)' : ''}</div>
+        <div class="wx-l">Vent ${Math.round(d.daily.wind_speed_10m_max[i])}&nbsp;km/h, rafales ${Math.round(d.daily.wind_gusts_10m_max[i])}&nbsp;km/h</div>
+        ${iso0[t] !== undefined && iso0[t] !== null ? `<div class="wx-l">Isotherme 0&nbsp;°C : ${fmtNum(Math.round(iso0[t] / 50) * 50)}&nbsp;m</div>` : ''}
+      </div>`;
+    }).join('') + '</div>' +
+    `<div class="wx-src">Prévisions Open-Meteo pour ${esc(cs.lieu || 'le point de départ')}${d.elevation ? ' (altitude ' + fmtNum(Math.round(d.elevation)) + ' m)' : ''}. Elles changent jusqu'au départ : regarde-les la veille.</div>`;
+  }catch(e){
+    box.innerHTML = '<div class="empty">Prévisions indisponibles pour le moment. Réessaie plus tard.</div>';
+  }
+}
+
+// ================= TRACE : carte topo + profil altimétrique =================
+let leafletPromise = null;
+function loadLeaflet(){
+  if(window.L) return Promise.resolve();
+  if(leafletPromise) return leafletPromise;
+  leafletPromise = new Promise((res, rej) => {
+    const css = document.createElement('link'); css.rel = 'stylesheet';
+    css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(css);
+    const js = document.createElement('script'); js.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    js.onload = () => res(); js.onerror = () => { leafletPromise = null; rej(new Error('carte indisponible')); };
+    document.head.appendChild(js);
+  });
+  return leafletPromise;
+}
+async function getGpx(id){
+  if(gpxCache[id]) return gpxCache[id];
+  const r = await apiGet('gpx', {id});
+  if(!r || !r.contenu) throw new Error('trace introuvable');
+  gpxCache[id] = { nom: r.nom, contenu: r.contenu, t: parseGpx(r.contenu) };
+  return gpxCache[id];
+}
+function traceManageHtml(cs){
+  if(!canManage(cs) || (cs.statut || 'prevue') === 'faite') return '';
+  return `<details class="manage" ${!cs.gpx_id && !cs.trace_lien ? 'open' : ''}><summary>${cs.gpx_id || cs.trace_lien ? 'Modifier la trace' : 'Ajouter une trace'}</summary>
+    <div class="grid" style="margin-top:14px;">
+      <div class="full"><label for="t_gpx">${cs.gpx_id ? 'Remplacer le fichier GPX' : 'Fichier GPX'}</label><input type="file" id="t_gpx" accept=".gpx,application/gpx+xml" onchange="onGpxPicked('t')"><div class="status" id="t_gpx_info"></div></div>
+      <div class="full"><label for="t_trace_lien">Lien vers la trace (Visorando, Strava, IGN…)</label><input type="url" id="t_trace_lien" value="${esc(cs.trace_lien)}" placeholder="https://"></div>
+      <input type="hidden" id="t_dist"><input type="hidden" id="t_dplus"><input type="hidden" id="t_lat"><input type="hidden" id="t_lon">
+      <div class="full toolbar"><button onclick="saveTrace()">Enregistrer la trace</button>${cs.gpx_id ? '<span class="lnk" onclick="removeGpx()">Retirer le fichier GPX</span>' : ''}</div>
+    </div></details>`;
+}
+async function renderTrace(){
+  const cs = currentSortie;
+  const box = document.getElementById('trace');
+  if(!box) return;
+  const lien = /^https?:\/\//.test(String(cs.trace_lien)) ? `<a class="lnk" style="margin-left:0" href="${esc(cs.trace_lien)}" target="_blank" rel="noopener">Ouvrir la trace en ligne</a>` : '';
+  if(!cs.gpx_id){
+    box.innerHTML = (lien ? `<div class="toolbar">${lien}</div>` : '<div class="empty">Pas encore de trace pour cette sortie.</div>') + traceManageHtml(cs);
+    return;
+  }
+  box.innerHTML = `<div class="map" id="map" role="img" aria-label="Carte de la trace"></div>
+    <div class="profile" id="profile"></div><div class="profile-read" id="profile-read"></div>
+    <div class="tstats" id="tstats"></div>
+    <div class="toolbar"><button class="outline small" onclick="telechargerGpx()">Télécharger le GPX</button>${lien}</div>` + traceManageHtml(cs);
+  let g;
+  try{ g = await getGpx(cs.gpx_id); }
+  catch(e){ document.getElementById('map').outerHTML = '<div class="warn">La trace GPX n\'a pas pu être chargée.</div>'; return; }
+  const t = g.t;
+  document.getElementById('tstats').innerHTML = [
+    [fmtNum(t.km) + ' km', 'distance'], ['+' + fmtNum(t.dplus) + ' m', 'dénivelé positif'], ['−' + fmtNum(t.dminus) + ' m', 'dénivelé négatif'],
+    t.eleMax !== null ? [fmtNum(t.eleMax) + ' m', 'point haut'] : null, t.eleMin !== null ? [fmtNum(t.eleMin) + ' m', 'point bas'] : null
+  ].filter(Boolean).map(([v, l]) => `<div class="tstat"><b>${v}</b><span>${l}</span></div>`).join('');
+  drawProfile(t);
+  try{
+    await loadLeaflet();
+    if(!document.getElementById('map')) return;
+    const map = L.map('map', {scrollWheelZoom:false, tap:true});
+    L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {maxZoom:17, attribution:'Carte © OpenTopoMap (CC-BY-SA), données © OpenStreetMap'}).addTo(map);
+    const line = L.polyline(t.pts.map(p => [p[0], p[1]]), {color:'#2E6B2A', weight:4, opacity:.9}).addTo(map);
+    L.circleMarker([t.pts[0][0], t.pts[0][1]], {radius:7, color:'#0A1E1E', weight:2, fillColor:'#5FAD56', fillOpacity:1}).addTo(map).bindTooltip('Départ');
+    const last = t.pts[t.pts.length-1];
+    if(haversine(t.pts[0], last) > 0.2) L.circleMarker([last[0], last[1]], {radius:6, color:'#0A1E1E', weight:2, fillColor:'#fff', fillOpacity:1}).addTo(map).bindTooltip('Arrivée');
+    window._cursor = L.circleMarker([t.pts[0][0], t.pts[0][1]], {radius:6, color:'#fff', weight:2, fillColor:'#B3261E', opacity:0, fillOpacity:0}).addTo(map);
+    map.fitBounds(line.getBounds(), {padding:[18,18]});
+    window._map = map;
+  }catch(e){
+    const m = document.getElementById('map'); if(m) m.outerHTML = '<div class="empty">Carte indisponible hors connexion. Le profil et le fichier restent accessibles.</div>';
+  }
+}
+// Profil altimétrique : glisser le doigt dessus déplace le repère sur la carte
+function drawProfile(t){
+  const el = document.getElementById('profile');
+  const pts = t.pts.filter(p => p[2] !== null);
+  if(!el || pts.length < 2){ if(el) el.innerHTML = ''; return; }
+  const W = Math.max(300, Math.round(el.clientWidth || 640)), H = W < 520 ? 150 : 180, padL = 46, padB = 24, padT = 10, padR = 8;
+  const dMax = pts[pts.length-1][3] || 1;
+  const eMin = Math.min(...pts.map(p => p[2])), eMax = Math.max(...pts.map(p => p[2]));
+  const lo = Math.floor((eMin - 20) / 100) * 100, hi = Math.ceil((eMax + 20) / 100) * 100;
+  const X = d => padL + (d / dMax) * (W - padL - padR);
+  const Y = e => padT + (1 - (e - lo) / (hi - lo || 1)) * (H - padT - padB);
+  const k = Math.max(1, Math.ceil(pts.length / 600));
+  const sample = pts.filter((p, i) => i % k === 0 || i === pts.length - 1);
+  const line = sample.map((p, i) => (i ? 'L' : 'M') + X(p[3]).toFixed(1) + ' ' + Y(p[2]).toFixed(1)).join(' ');
+  const area = line + ` L${X(dMax).toFixed(1)} ${H - padB} L${padL} ${H - padB} Z`;
+  const stepE = (hi - lo) > 1200 ? 500 : (hi - lo) > 500 ? 200 : 100;
+  let grid = '';
+  for(let e = Math.ceil(lo / stepE) * stepE; e <= hi; e += stepE){
+    grid += `<line x1="${padL}" x2="${W - padR}" y1="${Y(e)}" y2="${Y(e)}" stroke="#D5D8CF" stroke-width="1"/><text x="${padL - 6}" y="${Y(e) + 4}" text-anchor="end" font-size="12" fill="#4F5557">${e}</text>`;
+  }
+  const stepD = (dMax / (W / 90)) > 5 ? 10 : (dMax / (W / 90)) > 2 ? 5 : (dMax / (W / 90)) > 1 ? 2 : 1;
+  for(let d = 0; d <= dMax + 0.001; d += stepD){
+    grid += `<text x="${X(d)}" y="${H - 6}" text-anchor="${d === 0 ? 'start' : 'middle'}" font-size="12" fill="#4F5557">${d} km</text>`;
+  }
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Profil altimétrique, de ${fmtNum(Math.round(eMin))} à ${fmtNum(Math.round(eMax))} mètres">
+    ${grid}<path d="${area}" fill="#E7F2E4"/><path d="${line}" fill="none" stroke="#2E6B2A" stroke-width="2"/>
+    <line id="pf-x" x1="0" x2="0" y1="${padT}" y2="${H - padB}" stroke="#0A1E1E" stroke-width="1" opacity="0"/>
+    <circle id="pf-dot" r="4.5" fill="#B3261E" stroke="#fff" stroke-width="1.5" opacity="0"/></svg>`;
+  const svg = el.querySelector('svg');
+  const read = document.getElementById('profile-read');
+  const move = ev => {
+    const r = svg.getBoundingClientRect();
+    const x = ((ev.clientX - r.left) / r.width) * W;
+    const d = Math.max(0, Math.min(dMax, ((x - padL) / (W - padL - padR)) * dMax));
+    let i = 0, lo2 = 0, hi2 = pts.length - 1;
+    while(lo2 < hi2){ const m = (lo2 + hi2) >> 1; if(pts[m][3] < d) lo2 = m + 1; else hi2 = m; }
+    i = lo2;
+    const p = pts[i];
+    svg.querySelector('#pf-x').setAttribute('x1', X(p[3])); svg.querySelector('#pf-x').setAttribute('x2', X(p[3]));
+    svg.querySelector('#pf-x').setAttribute('opacity', .5);
+    const dot = svg.querySelector('#pf-dot'); dot.setAttribute('cx', X(p[3])); dot.setAttribute('cy', Y(p[2])); dot.setAttribute('opacity', 1);
+    read.textContent = `Km ${fmtNum(Math.round(p[3] * 10) / 10)}, altitude ${fmtNum(Math.round(p[2]))} m`;
+    if(window._cursor){ window._cursor.setLatLng([p[0], p[1]]); window._cursor.setStyle({opacity:1, fillOpacity:1}); }
+  };
+  svg.addEventListener('pointermove', move);
+  svg.addEventListener('pointerdown', ev => { svg.setPointerCapture && svg.setPointerCapture(ev.pointerId); move(ev); });
+  read.textContent = matchMedia('(hover: hover)').matches ? 'Survole le profil pour situer chaque point sur la carte.' : 'Glisse le doigt sur le profil pour situer chaque point sur la carte.';
+}
+async function telechargerGpx(){
+  try{
+    const g = await getGpx(currentSortie.gpx_id);
+    const url = URL.createObjectURL(new Blob([g.contenu], {type:'application/gpx+xml'}));
+    const a = document.createElement('a'); a.href = url; a.download = g.nom || 'trace.gpx';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }catch(e){ alert('Téléchargement impossible : ' + e.message); }
+}
+async function saveTrace(){
+  const lien = document.getElementById('t_trace_lien').value.trim();
+  if(lien !== String(currentSortie.trace_lien || '')){
+    const r = await apiPost('sortie_update', {sortie_id: currentSortieId, trace_lien: lien});
+    if(r && r.ok === false){ alert(r.error); return; }
+  }
+  if(gpxPending.t){
+    const r = await envoyerGpx('t', 'sortie', currentSortieId);
+    if(r && r.ok === false){ alert(r.error); return; }
+  }
+  await reloadCurrent();
+  toast('Trace enregistrée ✓');
+}
+async function removeGpx(){
+  if(!confirm('Retirer le fichier GPX de cette sortie ?')) return;
+  const r = await apiPost('gpx_remove', {cible:'sortie', id: currentSortieId});
+  if(r && r.ok === false){ alert(r.error); return; }
+  await reloadCurrent();
+  toast('Fichier GPX retiré');
+}
+
+// ================= COVOITURAGE : départs multiples =================
+async function refreshCovoit(){
+  const box = document.getElementById('covoit');
+  if(!box) return;
+  let c;
+  try{ c = await apiGet('covoit', {sortie_id: currentSortieId}); }
+  catch(e){ showLoadError('covoit', e); return; }
+  window._covoit = c;
+  const st = currentSortie.statut || 'prevue';
+  const ouvert = st === 'prevue';
+  const gere = canManage(currentSortie);
+  const conducteurs = c.voitures.map(v => v.conducteur);
+  const maVoiture = c.voitures.find(v => v.conducteur === currentUser);
+  const monSiege = c.passagers.find(p => p.pseudo === currentUser);
+  const libres = c.voitures.reduce((n, v) => n + Math.max(0, Number(v.places) - c.passagers.filter(p => String(p.voiture_id) === String(v.voiture_id)).length), 0);
+  const casés = new Set([...conducteurs, ...c.passagers.map(p => p.pseudo)]);
+  const sansPlace = presentCache.filter(p => !casés.has(p));
+
+  let html = '';
+  if(c.voitures.length){
+    html += `<p class="covoit-sum"><b>${c.voitures.length} voiture${c.voitures.length > 1 ? 's' : ''}</b>, ${libres} place${libres > 1 ? 's' : ''} libre${libres > 1 ? 's' : ''}.</p><div class="cars">`;
+    c.voitures.sort((a,b) => String(a.heure).localeCompare(String(b.heure))).forEach(v => {
+      const pass = c.passagers.filter(p => String(p.voiture_id) === String(v.voiture_id)).map(p => p.pseudo);
+      const nPlaces = Number(v.places) || 0;
+      const reste = Math.max(0, nPlaces - pass.length);
+      const estMoi = v.conducteur === currentUser, jySuis = pass.includes(currentUser);
+      const seats = pass.map(p => `<span class="seat">${esc(p)}${(gere || estMoi) && ouvert && p !== currentUser ? ` <span class="lnk" style="margin-left:4px" onclick="covoitLeave('${esc(v.voiture_id)}','${esc(p).replace(/'/g, "\\'")}')" aria-label="Retirer ${esc(p)}">×</span>` : ''}</span>`).join('') +
+        Array.from({length: reste}, () => '<span class="seat empty">Place libre</span>').join('');
+      let actions = '';
+      if(ouvert){
+        if(jySuis) actions += `<button class="outline small" onclick="covoitLeave('${esc(v.voiture_id)}')">Libérer ma place</button>`;
+        else if(!estMoi && !maVoiture && reste > 0) actions += `<button class="small" onclick="covoitJoin('${esc(v.voiture_id)}')">${monSiege ? 'Changer pour cette voiture' : 'Réserver une place'}</button>`;
+        if(estMoi || gere) actions += `<span class="lnk" onclick="carForm('${esc(v.voiture_id)}')">modifier</span><span class="lnk" onclick="carDelete('${esc(v.voiture_id)}')">retirer la voiture</span>`;
+      }
+      html += `<div class="car ${reste === 0 ? 'full' : ''} ${estMoi || jySuis ? 'mine' : ''}">
+        <div class="car-head"><div><div class="car-who">${esc(v.conducteur)}${estMoi ? ' (toi)' : ''}</div>
+          <div class="car-from">${esc(v.depart)}${v.heure ? ', ' + esc(String(v.heure).slice(0,5)) : ''}</div></div>
+          <div class="car-free">${reste === 0 ? 'Complet' : reste + ' place' + (reste > 1 ? 's' : '')}</div></div>
+        <div class="seats">${seats}</div>
+        ${v.note ? `<div class="car-note">${esc(v.note)}</div>` : ''}
+        ${actions ? `<div class="car-actions">${actions}</div>` : ''}
+      </div>`;
+    });
+    html += '</div>';
+  } else {
+    html += `<div class="empty">${ouvert ? 'Personne ne propose encore de voiture.' : 'Pas de covoiturage enregistré.'}</div>`;
+  }
+  if(ouvert && sansPlace.length) html += `<p class="without"><b>Inscrits sans place :</b> ${sansPlace.map(esc).join(', ')}</p>`;
+  if(ouvert) html += `<div class="toolbar" style="margin-top:16px;">${maVoiture ? `<button class="outline" onclick="carForm('${esc(maVoiture.voiture_id)}')">Modifier ma voiture</button>` : '<button onclick="carForm()">Je propose ma voiture</button>'}</div><div id="car-form"></div>`;
+  box.innerHTML = html;
+}
+function carForm(id){
+  const v = id ? (window._covoit.voitures.find(x => String(x.voiture_id) === String(id)) || {}) : {};
+  const departs = [...new Set(window._covoit.voitures.map(x => x.depart).filter(Boolean))];
+  const box = document.getElementById('car-form');
+  box.innerHTML = `<div class="panel" style="margin:16px 0 0; background:#FBFCFA;">
+    <h4>${id ? 'Modifier la voiture' : 'Ma voiture'}</h4>
+    <div class="grid two" style="margin-top:12px;">
+      <div class="full"><label for="v_depart">Point de départ</label><input type="text" id="v_depart" list="v_departs" value="${esc(v.depart)}" placeholder="ex. Toulouse, métro Borderouge"><datalist id="v_departs">${departs.map(d => `<option value="${esc(d)}">`).join('')}</datalist></div>
+      <div><label for="v_heure">Heure de départ</label><input type="time" id="v_heure" value="${esc(String(v.heure || '').slice(0,5))}"></div>
+      <div><label for="v_places">Places passagers</label><select id="v_places">${[1,2,3,4,5,6,7].map(n => `<option ${Number(v.places || 3) === n ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+      <div class="full"><label for="v_note">Note (optionnel)</label><input type="text" id="v_note" value="${esc(v.note)}" placeholder="ex. coffre plein, partage des frais"></div>
+      <div class="full toolbar"><button onclick="carSave('${esc(id || '')}')">${id ? 'Enregistrer' : 'Proposer ma voiture'}</button><button class="secondary" onclick="document.getElementById('car-form').innerHTML=''">Annuler</button></div>
+    </div></div>`;
+  document.getElementById('v_depart').focus();
+}
+async function carSave(id){
+  const r = await apiPost('covoit_voiture_set', {sortie_id: currentSortieId, voiture_id: id || '', depart: document.getElementById('v_depart').value.trim(),
+    heure: document.getElementById('v_heure').value, places: document.getElementById('v_places').value, note: document.getElementById('v_note').value.trim()});
+  if(r && r.ok === false){ alert(r.error); return; }
+  toast(id ? 'Voiture mise à jour ✓' : 'Voiture proposée ✓');
+  refreshParticipants();
+}
+async function carDelete(id){
+  const v = window._covoit.voitures.find(x => String(x.voiture_id) === String(id));
+  const n = window._covoit.passagers.filter(p => String(p.voiture_id) === String(id)).length;
+  if(!confirm(`Retirer la voiture de ${v ? v.conducteur : ''} ?${n ? ' ' + n + ' passager(s) devront trouver une autre place.' : ''}`)) return;
+  const r = await apiPost('covoit_voiture_delete', {sortie_id: currentSortieId, voiture_id: id});
+  if(r && r.ok === false){ alert(r.error); return; }
+  toast('Voiture retirée');
+  refreshCovoit();
+}
+async function covoitJoin(id){
+  const r = await apiPost('covoit_join', {sortie_id: currentSortieId, voiture_id: id});
+  if(r && r.ok === false){ alert(r.error); refreshCovoit(); return; }
+  toast(presentCache.includes(currentUser) ? 'Place réservée ✓' : 'Place réservée ✓ Tu es inscrit à la sortie');
+  refreshParticipants();
+}
+async function covoitLeave(id, pseudo){
+  const r = await apiPost('covoit_leave', {sortie_id: currentSortieId, voiture_id: id, pseudo: pseudo || currentUser});
+  if(r && r.ok === false){ alert(r.error); return; }
+  toast(pseudo && pseudo !== currentUser ? pseudo + ' retiré de la voiture' : 'Place libérée');
+  refreshCovoit();
 }
 
 // ---- moteur (identique aux versions précédentes) ----
@@ -1033,9 +1756,12 @@ function computeKit(catalog, params){
   return { sections, individualWeight, collectifProposals, warnings };
 }
 
-async function computeAllKits(){
-  const parts = await apiGet('participants', {sortie_id: currentSortieId});
-  const present = parts.filter(p => String(p.present) === 'true' || p.present === true).map(p => p.pseudo);
+async function computeAllKits(presentList){
+  let present = presentList;
+  if(!present){
+    const parts = await apiGet('participants', {sortie_id: currentSortieId});
+    present = parts.filter(p => String(p.present) === 'true' || p.present === true).map(p => p.pseudo);
+  }
   kitCache = {};
   const params = {
     nuitee: currentSortie.mode_nuitee, terrain: currentSortie.terrain, saison: saisonEquip(currentSortie.saison),
@@ -1043,10 +1769,8 @@ async function computeAllKits(){
     isCourse: ['Trail','Course à pied'].includes(currentSortie.type_activite),
     autonomieRepas: ['Bivouac','Cabane','Mixte'].includes(currentSortie.mode_nuitee),
   };
-  for(const pseudo of present){
-    const items = await apiGet('inventaire', {pseudo});
-    kitCache[pseudo] = computeKit(catalogFromItems(items), params);
-  }
+  const invs = await Promise.all(present.map(pseudo => apiGet('inventaire', {pseudo}).catch(() => [])));
+  present.forEach((pseudo, i) => { kitCache[pseudo] = computeKit(catalogFromItems(invs[i]), params); });
   await renderCollectifAndRecap(present);
 }
 
@@ -1089,13 +1813,13 @@ async function renderCollectifAndRecap(present){
 
 async function reassign(objet, poids, pseudo){
   await apiPost('attribution_set', {sortie_id: currentSortieId, objet, poids_g: poids, pseudo_porteur: pseudo});
-  await computeAllKits();
+  await computeAllKits(presentCache);
 }
 
 async function autoAssign(){
   const items = (window._groupCollectifItems || []).slice().sort((a,b) => b.poids - a.poids);
-  const parts = await apiGet('participants', {sortie_id: currentSortieId});
-  const present = parts.filter(p => String(p.present) === 'true' || p.present === true).map(p => p.pseudo);
+  const present = presentCache.slice();
+  if(!present.length) return;
   const running = {};
   present.forEach(p => running[p] = kitCache[p] ? kitCache[p].individualWeight : 0);
   for(const item of items){
@@ -1104,7 +1828,8 @@ async function autoAssign(){
     await apiPost('attribution_set', {sortie_id: currentSortieId, objet: item.label, poids_g: item.poids, pseudo_porteur: minP});
     running[minP] += item.poids;
   }
-  await computeAllKits();
+  await computeAllKits(presentCache);
+  toast('Matériel collectif réparti ✓');
 }
 
 function renderRecap(present, groupCollectifItems, attribMap){
@@ -1133,7 +1858,7 @@ function renderRecap(present, groupCollectifItems, attribMap){
   });
   document.getElementById('detail-weightbar').innerHTML = present.length
     ? `<div><div class="label">Poids total groupe</div><div class="big">${(grandTotal/1000).toFixed(2)} kg</div></div><div class="note">${present.length} participant(s)</div>`
-    : '<div class="empty">Aucun participant coché.</div>';
+    : '<div class="empty">Aucun inscrit pour l\'instant.</div>';
 }
 
 // ================= Repas =================
